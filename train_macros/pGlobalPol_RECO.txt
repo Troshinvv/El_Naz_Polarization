@@ -1,0 +1,44 @@
+#-------Parameters used for analysis------
+# Event selection: 
+mZvtxCut 130 //  cut on vertex z coordinate
+
+# Track selection: 
+mNofHitsCut   10  // minimal number of hits to accept track
+mEtaCut      0.5  // maximal pseudorapidity accepted
+mPtminCut    0.1  // minimal pt used in analysis
+mDcaCut      2.0  // maximal pseudorapidity accepted
+
+# Event selection:
+NITER            20       // number of angular bins
+NITER_CENT        4       // number of centralty bins
+cent_cut       70.0       // number of angular bins
+cent_cut_choice   0       // number of angular bins
+particle_choice   Lambda  // particle choice (Lambda or ALambda)
+
+# PID parameters:
+MCFile /lustre/home/user/n/nazarova/macro/polarization-analysis-framework/urqmd-BiBi-09.2GeV-mb-eos0-500-0.dst.root // MC file with geometry
+sigM           4.0     // sigma for M
+sigE           4.0     // sigma for E
+energy         9.0     // energy
+coef           1.0     // coefficient
+generator      PHSD    // generator name
+tracking       CFHM    // type of tracking
+
+# Topology selection parameters:
+NITER_Selections    30     // number of values (recommended - 30 for omega selection, 10 for dca/chi selection)
+omega_start         1.4    // starting value for omega_2 parameter
+omega_step          0.1    // step value for omega_2 parameter
+chi_pi_start        2.0    // starting value for chi_pi (> this)
+chi_p_start         2.0    // starting value for chi_p (> this)
+chi_V0_start        2.0    // starting value for chi_V0 (< this)
+lambda_path_start   1.6    // starting value for lambda_path (> this)
+lambda_angle_start  0.06   // starting value for lambda_angle (< this)
+chi_pi_step         0.4    // step value for chi_pi
+chi_p_step          0.4    // step value for chi_p
+chi_V0_step         0.4    // step value for chi_V0
+lambda_path_step    0.4    // step value for lambda_path
+lambda_angle_step   0.02   // step value for lambda_angle
+
+# Analysis parameters:
+selections_values Omega2_values_Cent_4.txt // File with topology selection values
+#selections_values ChiSelection_values_Cent_4.txt // File with topology selection values

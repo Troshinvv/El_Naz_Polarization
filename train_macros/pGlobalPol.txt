@@ -1,0 +1,17 @@
+#-------Parameters used for analysis------
+# Event selection: 
+mZvtxCut 130 //  cut on vertex z coordinate
+
+# Track selection: 
+mNofHitsCut   10  // minimal number of hits to accept track
+mEtaCut      0.5  // maximal pseudorapidity accepted
+mPtminCut    0.1  // minimal pt used in analysis
+mDcaCut      2.0  // maximal pseudorapidity accepted
+
+# Event selection: 
+
+NITER            20      // number of angular bins
+NITER_CENT        4      // number of centralty bins
+cent_cut       70.0      // number of angular bins
+cent_cut_choice   0      // number of angular bins
+particle_choice  Lambda  // particle choice (Lambda or ALambda)

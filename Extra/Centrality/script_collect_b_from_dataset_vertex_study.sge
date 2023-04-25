@@ -1,0 +1,58 @@
+#$ -cwd 
+#$ -j y
+#$ -N Analyzer
+#$ -t 1-7700
+#$ -l h=(ncx12[1-2]|ncx12[4-7]|ncx13[0-7]|ncx139|ncx14[0-2]|ncx14[5-6]|ncx148|ncx15[0-3]|ncx15[5-9]|ncx16[0-8]|ncx17[0-1]|ncx17[4-6]|ncx18[0-1]|ncx18[4-6]|ncx20[3-4]|ncx20[6-8]|ncx21[2-6]|ncx218|ncx22[1-2]|ncx22[4-8]|ncx23[2-8])
+
+date
+echo "Node: ${HOSTNAME}"
+
+source /cvmfs/nica.jinr.ru/sw/os/login.sh
+module add mpddev
+export MPDROOT=/scratch2/nazarova/mpd
+source $MPDROOT/config/env.sh
+
+export MACRO_DIR=/scratch2/nazarova/polarization-analysis-framework/
+export OUT_DIR=/scratch2/nazarova/polarization-analysis-framework/output_vertexstudy_default/
+
+echo $SGE_TASK_ID
+((SGE_TASK_ID--))
+echo $SGE_TASK_ID
+
+if [ -f "${OUT_DIR}/Anal_bin${SGE_TASK_ID}.root" ]; then
+  exit 0
+fi
+
+mkdir d_${JOB_ID}_${SGE_TASK_ID}
+cd d_${JOB_ID}_${SGE_TASK_ID} 
+cp ${MACRO_DIR}/Extra/Centrality/Collect_b_from_dataset_vertexstudy.cc Collect_b_from_dataset_vertexstudy.cc
+cp ${MACRO_DIR}/Makefile Makefile
+
+printf -v SGE_TASK_ID_COUNTER "%04d" $SGE_TASK_ID
+
+export INFILE0=/eos/nica/mpd/sim/data/exp/dst-BiBi-09.2GeV-mp07-22-500ev-req30/BiBi/09.2GeV-mb/PHSD/dst-BiBi-09.2GeV-mp07-22-500ev-req30/phsd-BiBi-09.2GeV-mb-eos0-2k-${SGE_TASK_ID_COUNTER}-0.reco.root
+export INFILE1=/eos/nica/mpd/sim/data/exp/dst-BiBi-09.2GeV-mp07-22-500ev-req30/BiBi/09.2GeV-mb/PHSD/dst-BiBi-09.2GeV-mp07-22-500ev-req30/phsd-BiBi-09.2GeV-mb-eos0-2k-${SGE_TASK_ID_COUNTER}-1.reco.root
+export INFILE2=/eos/nica/mpd/sim/data/exp/dst-BiBi-09.2GeV-mp07-22-500ev-req30/BiBi/09.2GeV-mb/PHSD/dst-BiBi-09.2GeV-mp07-22-500ev-req30/phsd-BiBi-09.2GeV-mb-eos0-2k-${SGE_TASK_ID_COUNTER}-2.reco.root
+export INFILE3=/eos/nica/mpd/sim/data/exp/dst-BiBi-09.2GeV-mp07-22-500ev-req30/BiBi/09.2GeV-mb/PHSD/dst-BiBi-09.2GeV-mp07-22-500ev-req30/phsd-BiBi-09.2GeV-mb-eos0-2k-${SGE_TASK_ID_COUNTER}-3.reco.root
+
+#export INFILE0=/eos/nica/mpd/sim/data/exp/dst-BiBi-09.2GeV-mp07-22-500ev-req25/BiBi/09.2GeV-mb/urqmd/BiBi-09.2GeV-mp07-22-500ev-req25/urqmd-BiBi-09.2GeV-mb-eos0-500-${SGE_TASK_ID}.reco.root
+
+#export INFILE0=/scratch2/nazarova/output/DST_bin${SGE_TASK_ID}_0.root
+#export INFILE1=/scratch2/nazarova/output/DST_bin${SGE_TASK_ID}_1.root
+#export INFILE2=/scratch2/nazarova/output/DST_bin${SGE_TASK_ID}_2.root
+#export INFILE3=/scratch2/nazarova/output/DST_bin${SGE_TASK_ID}_3.root
+
+export OUTFILE=${OUT_DIR}/Anal_bin${SGE_TASK_ID}.root
+
+echo ""
+echo "Start Analysis"
+date
+echo ""
+
+make Collect_b_from_dataset_vertexstudy
+./Collect_b_from_dataset_vertexstudy -inname $INFILE0 $INFILE1 $INFILE2 $INFILE3 -outname $OUTFILE
+
+cd ..
+rm -rf d_${JOB_ID}_${SGE_TASK_ID}
+
+date
