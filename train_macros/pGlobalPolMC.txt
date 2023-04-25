@@ -1,0 +1,9 @@
+#-------Parameters used for analysis------
+
+# Event selection: 
+
+NITER               20      // number of angular bins
+NITER_CENT           4      // number of centralty bins (defined for 4, 7, 10)
+cent_cut          70.0      // cut-off value for centrality 
+cent_cut_choice      0      // choice of centrality cut (0 -no cut, 1 -cut)
+particle_choice   3122      // particle choice (pdg number of hyperon)
