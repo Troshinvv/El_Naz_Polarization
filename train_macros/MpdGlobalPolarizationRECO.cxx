@@ -83,9 +83,7 @@ void MpdGlobalPolarizationRECO::UserInit()
 		return;
 	}
 	
-	cout<<"---------- BEFORE PID ----------"<<endl;
-	//fPid = new MpdPid(sigM, sigE, energy, coef, generator, tracking, "pikapr");
-	fPid = new MpdPid(sigM, sigE, energy, coef, generator, tracking, "pikaprdetrhe3he4"); // this is the new one from Zinchenko
+	fPid = new MpdPid(sigM, sigE, energy, coef, generator, tracking, "pikaprdetrhe3he4"); // this is the new PID from Zinchenko's code 
 
 	// Creating the necessary histograms:
 	// Only the ones required for "selection" or "analysis" will be saved
@@ -107,13 +105,16 @@ void MpdGlobalPolarizationRECO::UserInit()
 	hPtProt = new TH1D("hPtProt","Proton Pt", 20, 0, 5);
 	hPtProtT = new TH1D("hPtProtT","True Proton Pt", 20, 0, 5);
 	hPtProtF = new TH1D("hPtProtF","False Proton Pt", 20, 0, 5);
-
 	
+	fvvvL = &vLambdas;
+	fvvvLpt = &fvLambMpdgPtEtaY;
+
 	results = new TTree("event","Event");
 	results->Branch("b0",&b0,"b0/F"); //impact parameter
+	results->Branch("Centrality_tpc",&Centrality_tpc,"Centrality_tpc/F"); //event centrality 
 	results->Branch("ntr",&ntr,"ntr/I"); // number of tracks selected for analysis
-	TBranch *br = results->Branch("l0","std::vector<MpdLambdaPol>", &vLambdas); //lambda candidates
-	results->Branch("ptetayl0","std::vector<tuple<int,float,float,float> >", &vvvLpt); //lambda phase space (MC)
+	TBranch *br = results->Branch("l0","std::vector<MpdLambdaPol>", &fvvvL); //lambda candidates
+	results->Branch("ptetayl0","std::vector<tuple<int,float,float,float> >", &fvvvLpt); //lambda phase space (MC)
 	results->Branch("nLamb",&nLamb,"nLamb/I"); //number of Lambda (in collection)
 	results->Branch("nLamb_MC",&nLamb_MC,"nLamb_MC/I"); //number of Lambda (MC)
 	
@@ -224,7 +225,7 @@ void MpdGlobalPolarizationRECO::UserInit()
 				cout << "File with selection values does not exist! Please run the 'selection' choice first! Exiting... " << endl;
 				exit(0);
 			}
-			//selections_file >> omega_value_full; // should i have a set for "full"?
+			
 			Int_t nlines = 0;
 			while (true) 
 			{
@@ -244,7 +245,6 @@ void MpdGlobalPolarizationRECO::UserInit()
 				exit(0);
 			}
 			selections_file.close();
-			//cout << "omega_value_full =  " << omega_value_full << endl;
 			for(int iter_cent = 0; iter_cent < NITER_CENT; iter_cent++)
 			{
 				cout << "iter_cent = " << iter_cent << "; chi_pi_value[iter_cent] =  " << chi_pi_value[iter_cent] << "; chi_p_value[iter_cent] =  " << chi_p_value[iter_cent] << "; chi_V0_value[iter_cent] =  " << chi_V0_value[iter_cent] << "; lambda_path_value[iter_cent] =  " << lambda_path_value[iter_cent] << "; lambda_angle_value[iter_cent] =  " << lambda_angle_value[iter_cent] << endl;
@@ -344,6 +344,7 @@ void MpdGlobalPolarizationRECO::UserInit()
 		}else if(selection_choice == "chi")
 		{
 			cout << "Topology selection using chi parameters" << endl;
+			/*
 			hm0_before_full = new TH1D("hm0_before_full", "hm0_before_full", 100, 1.07, 1.17);
 			fOutputList->Add(hm0_before_full);
 			hm0_before = new TH1D*[NITER_CENT];
@@ -366,6 +367,9 @@ void MpdGlobalPolarizationRECO::UserInit()
 				hm0_before[iter_cent] = new TH1D(Form("hm0_before_%d", iter_cent),Form("hm0_before_%d", iter_cent), 100, 1.07, 1.17);
 				fOutputList->Add(hm0_before[iter_cent]);				
 			}
+			*/
+			//Just do the tree for now:
+			fOutputList->Add(results);
 		}
 	}else 
 	{
@@ -421,8 +425,8 @@ void MpdGlobalPolarizationRECO::ProcessEvent(MpdAnalysisEvent &event)
 		indxVert.insert((*indxs)[k]);
 	if (fEvNo % 100 == 0) 
 	{
-       cout << " *** Event No: " << fEvNo << ", reco tracks in TPC, global: " << " " << mKalmanTracks->GetEntriesFast() 
-	    << "; " << mMpdGlobalTracks->GetEntriesFast() << ", vertices: " << event.fVertex->GetEntriesFast() << endl;
+       cout << " *** Event No: " << fEvNo << ", reco tracks in TPC: " << " " << mKalmanTracks->GetEntriesFast() 
+	    << ", vertices: " << event.fVertex->GetEntriesFast() << endl;
        cout << " Number of primary (used for vertex reco) tracks: " << indxVert.size() << endl;
     }
 
@@ -450,7 +454,7 @@ void MpdGlobalPolarizationRECO::ProcessEvent(MpdAnalysisEvent &event)
 	if (fEvNo % 100 == 0) cout << " Number of protons, pi: " << vecP.size() << " " << vecPi.size() << endl;
 	RecoEff(vecP, vecPi, 1);
 	if (fEvNo % 100 == 0) cout << " Number of protons, pi: " << vecP.size() << " " << vecPi.size() << endl;
-	ApplyPid(fPid, vecP, vecPi);  	
+	ApplyPid(vecP, vecPi);  	
 	vector<MpdParticle*> vecL;
 	vecL.clear();
 	vLambdas.clear();
@@ -512,7 +516,6 @@ bool MpdGlobalPolarizationRECO::selectEvent(MpdAnalysisEvent &event)
 
 	mMCTracks = event.fMCTrack;
 	mKalmanTracks = event.fTPCKalmanTrack;
-	mMpdGlobalTracks = event.fMPDEvent->GetGlobalTracks();
 	fMpdVert = (MpdVertex *)event.fVertex->First();
 	fMpdVert->Position(mPrimaryVertex);
 	fTofMatches = event.fTOFMatching;
@@ -827,10 +830,10 @@ void MpdGlobalPolarizationRECO::fillHistograms(MpdAnalysisEvent &event)
 	{
 		for(int i = 0; i < vLambdas.size(); i++) //cycle for reco Lambda
 		{
-			MpdLambdaPol* lamb = (MpdLambdaPol*) &vLambdas.at(i);
-			hm0_before_full->Fill(lamb->massh);
 			if(selection_choice == "omega2")
 			{
+				MpdLambdaPol* lamb = (MpdLambdaPol*) &vLambdas.at(i);
+				hm0_before_full->Fill(lamb->massh);
 				for(int iter_sel = 0; iter_sel < NITER_Selections; iter_sel++)
 				{	
 					if(lamb->omega2 > omega_value[iter_sel]) 
@@ -846,6 +849,9 @@ void MpdGlobalPolarizationRECO::fillHistograms(MpdAnalysisEvent &event)
 							hm0[iter_cent][iter_sel]->Fill(lamb->massh);
 					}		
 				}
+			}else if(selection_choice == "chi")
+			{
+
 			}
 		}
 		
@@ -984,8 +990,9 @@ MpdHelix MpdGlobalPolarizationRECO::MakeHelix(const MpdParticle *part)
 	return helix;
 }  
 
-void MpdGlobalPolarizationRECO::ApplyPid(MpdPid *pid, vector<int> &vecP, vector<int> &vecPi)
+void MpdGlobalPolarizationRECO::ApplyPid(vector<int> &vecP, vector<int> &vecPi)
 {
+	//Fill the maps for the Lambda and Xi flags:
 	map<int,set<int> > mapL, mapXi;
 	map<int,set<int> > mapL13, mapXi13;
 
@@ -1010,10 +1017,10 @@ void MpdGlobalPolarizationRECO::ApplyPid(MpdPid *pid, vector<int> &vecP, vector<
    		}
 		if (trP->GetVertex().GetUniqueID() > 0) 
 		{
-		// Xi- decay product
-		int mid = trP->GetVertex().GetUniqueID();
-		if (mapXi.find(mid) == mapXi.end()) { set<int> aaa; mapXi[mid] = aaa; }
-		mapXi[mid].insert(vecP[ip]);
+			// Xi- decay product
+			int mid = trP->GetVertex().GetUniqueID();
+			if (mapXi.find(mid) == mapXi.end()) { set<int> aaa; mapXi[mid] = aaa; }
+			mapXi[mid].insert(vecP[ip]);
 		}
 	}
 
@@ -1061,52 +1068,54 @@ void MpdGlobalPolarizationRECO::ApplyPid(MpdPid *pid, vector<int> &vecP, vector<
 
 	vecP.clear();
 	vecPi.clear();
+	//Refill the veP and vecPi vectors using the information from PID:
 
 	int nTracks = mKalmanTracks->GetEntriesFast();
 	for (int j = 0; j < nTracks; j++) 
 	{
 		MpdTpcKalmanTrack *tr = (MpdTpcKalmanTrack*) mKalmanTracks->UncheckedAt(j);
+		// Cut out bad tracks
 		if (tr->GetChi2() < -8) continue;
 		int id = tr->GetTrackID();
 		MpdMCTrack* mcTr = (MpdMCTrack*) mMCTracks->UncheckedAt(id);
 		int mothId = mcTr->GetMotherId();
 		int uid = tr->GetVertex().GetUniqueID();
    
-		MpdTrack* mpdTrack = (MpdTrack*) mMpdGlobalTracks->UncheckedAt(j);
-		if (mpdTrack->GetID() != id) { cout << id << " " << mpdTrack->GetID() << endl; Fatal("ApplyPid"," Different ID"); }
-		int ret = 0, eta13 = 0, charge = tr->Charge(), tofFlag = mpdTrack->GetTofFlag();
+		int ret = 0, eta13 = 0, charge = tr->Charge();
+		bool m2Flag = kFALSE; // flag to check whether there is m2 from TOF
 		double trEta = TMath::Abs (tr->Momentum3().Eta());
 		double dedx = tr->GetDedx(), m2 = -1;
+		// Flag to check whether there is m2 from TOF
 		if (mapTof.count(j) > 0) 
 		{
 			MpdTofMatchingData *match = (MpdTofMatchingData*) fTofMatches->UncheckedAt(mapTof[j]);
 			m2 = match->GetMass2();
-			tofFlag = 6;
+			m2Flag = kTRUE;
 		}
-		if (TMath::Abs(tr->Momentum3().Eta()) < 1.3) eta13 = 1;
-
-		Int_t asym = 0;
-		if (tofFlag == 2 || tofFlag == 6)          // dE/dx+TOF
-			ret = pid->FillProbs(tr->Momentum(), dedx, m2, charge); // here was lots of commented out stuff about applying asymmetric window
-		if (ret == 0 && asym == 0) ret = pid->FillProbs(tr->Momentum(), dedx, charge);
+		// Flag to check if eta of the track is less than 1.3
+		if (TMath::Abs(tr->Momentum3().Eta()) < 1.3) 
+			eta13 = 1;
+		// dE/dx+TOF (pid if we have both dedx and m2)
+		if (m2Flag) 
+			ret = fPid->FillProbs(tr->Momentum(), dedx, m2, charge); 
+		// only dE/dx (pid if we have only dedx)
+		if (ret == 0) 
+			ret = fPid->FillProbs(tr->Momentum(), dedx, charge); 
 		//!!! No PID for (anti)protons above 2.5 GeV/c !!!
-		if (tr->Momentum() > 2.5 && charge*pdgCodePr > 0) ret = 1; //AZ-130423
-		if (ret == 0) // No PID
+		if (tr->Momentum() > 2.5 && charge*pdgCodePr > 0) 
+			ret = 1; //AZ-130423 (everything with momentum > 2.5 is a proton)
+		if (ret == 0  && eta13) // No PID
 		{
-			if (eta13) 
-			{
-				if (mcTr->GetPdgCode() == pdgCodeNeg) hPIDflag->Fill(2.1); // lost pion
-				if (mcTr->GetPdgCode() == pdgCodePr) hPIDflag->Fill(6.1); // lost proton
-			}
-			continue;
+			if (mcTr->GetPdgCode() == pdgCodeNeg) hPIDflag->Fill(2.1); // lost pion
+			if (mcTr->GetPdgCode() == pdgCodePr) hPIDflag->Fill(6.1); // lost proton
 		}
+		//random threshold values to check that prob is not less than 0 ???
 		double piThr = -0.75;
 		double probThr = -0.60;
-		if (pdgCodeL0 * tr->Charge() < 0) 
+		if (pdgCodeL0 * charge < 0) 
 		{
-			double prob = pid->GetProbPi();
-			if (prob > piThr && prob > pid->GetProbKa() && prob > pid->GetProbPr() && prob > pid->GetProbDe() && prob > pid->GetProbTr() && prob > pid->GetProbHe3() && prob > pid->GetProbHe4())
-			//if (prob > piThr && prob > pid->GetProbKa() && prob > pid->GetProbEl() && prob > pid->GetProbPr() && prob > pid->GetProbMu()) //old version
+			double prob = fPid->GetProbPi(); //for nsig method can be either 1 or 0 -> if 1 we found a particle
+			if (prob > piThr && prob > fPid->GetProbKa() && prob > fPid->GetProbPr() && prob > fPid->GetProbDe() && prob > fPid->GetProbTr() && prob > fPid->GetProbHe3() && prob > fPid->GetProbHe4())
 			{
 				// "pion"
 				if (mcTr->GetPdgCode() == pdgCodeNeg && eta13) hPIDflag->Fill(0.1); // correct pion
@@ -1120,15 +1129,15 @@ void MpdGlobalPolarizationRECO::ApplyPid(MpdPid *pid, vector<int> &vecP, vector<
 					mapXi[uid].erase(j);
 				//
 				double chi2 = TMath::Min (tr->GetChi2Vertex(),999.);
-				if (chi2 < gC2pi) continue;
+				if (chi2 < gC2pi) continue; //less than 5
 				vecPi.push_back(j);
 			} else if (mcTr->GetPdgCode() == pdgCodeNeg && eta13) hPIDflag->Fill(2.1); // lost pion
 		} else 
 		{
 			if (trEta < 0.5 && mcTr->GetPdgCode() == pdgCodePr) hPtProt->Fill(tr->Pt());
-			double prob = pid->GetProbPr();
+			double prob = fPid->GetProbPr();
 			if (tr->Momentum() > 2.5 && charge*pdgCodePr > 0) prob = 9.9; //!!! force (anti)proton !!! AZ-130423
-			if (prob > probThr && prob > pid->GetProbKa() && prob > pid->GetProbPi() && prob > pid->GetProbDe()) 
+			if (prob > probThr && prob > fPid->GetProbKa() && prob > fPid->GetProbPi() && prob > fPid->GetProbDe()) 
 			{
 				// "proton"
 				if (mcTr->GetPdgCode() == pdgCodePr) 
@@ -1147,19 +1156,18 @@ void MpdGlobalPolarizationRECO::ApplyPid(MpdPid *pid, vector<int> &vecP, vector<
 	  				mapL13[mothId+1].erase(j);
 				if (mapXi.find(uid) != mapXi.end() && mapXi[uid].find(j) != mapXi[uid].end())
 					mapXi[uid].erase(j);
-				//
+				// Refit for proton track:
 				MpdTpcKalmanTrack trCor = *tr;
 				trCor.SetDirection(MpdKalmanTrack::kInward);
 				int ok = 0;
 				ok = recoTpc->Refit(&trCor, 0.93827, 1); // refit
-				//~ ShowTrackStats(tr);
 				if (!ok) continue;
 				MpdParticle prot(trCor, 0);
 				prot.SetPdg(pdgCodePr);
-				prot.SetMass();
+				//prot.SetMass(); // this is obsolete? setmass gets invoked in setpdg
 				double chi2 = TMath::Min (prot.Chi2Vertex(fMpdVert),999.);
-				if (chi2 < gC2p) continue;
-				vecP.push_back(j);
+				if (chi2 < gC2p) continue; // more than 3
+				vecP.push_back(j); 
 			} else if (mcTr->GetPdgCode() == pdgCodePr && eta13) hPIDflag->Fill(6.1); // lost proton
 		}
 	}    
@@ -1485,7 +1493,7 @@ void MpdGlobalPolarizationRECO::BuildLambda(vector<int> &vecP, vector<int> &vecP
 		} // for (Int_t jpi = 0; jpi < nPi;
 		if (nMix == 0) continue;
 		// Event mixing
-		cout << "Starting Event Mixing" << endl;
+		//cout << "Starting Event Mixing" << endl;
 		for (map<int,MpdVertex>::iterator mit = fMapVertexEvent.begin(); mit != fMapVertexEvent.end(); mit++) 
 		{
 			if (mit->first == fEvNo) break;

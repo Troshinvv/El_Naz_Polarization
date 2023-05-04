@@ -22,11 +22,11 @@ sigM           3.0     // sigma for M (this changed from 4)
 sigE           3.0     // sigma for E (this changed from 4)
 energy         9.2     // energy
 coef           1.0     // coefficient
-generator      PHSD    // generator name
+generator      NSIG    // generator name
 tracking       CFHM    // type of tracking
 
 # Topology selection parameters:
-NITER_Selections    10     // number of values (recommended - 30 for omega selection, 10 for dca/chi selection)
+NITER_Selections    30     // number of values (recommended - 30 for omega selection, 10 for dca/chi selection)
 omega_start         1.4    // starting value for omega_2 parameter
 omega_step          0.1    // step value for omega_2 parameter
 chi_pi_start        2.0    // starting value for chi_pi (> this)
@@ -41,5 +41,5 @@ lambda_path_step    0.4    // step value for lambda_path
 lambda_angle_step   0.02   // step value for lambda_angle
 
 # Analysis parameters:
-selections_values Omega2_values_Cent_4.txt // File with topology selection values
-#selections_values ChiSelection_values_Cent_4.txt // File with topology selection values
+#selections_values Omega2_values_Cent_4.txt // File with topology selection values
+selections_values ChiSelection_values_Cent_4.txt // File with topology selection values

@@ -33,3 +33,12 @@ class MpdLambdaPol {
    ClassDef(MpdLambdaPol, 1);
 };
 #endif
+#include <vector>
+#include <stdlib.h>
+#ifdef __ROOTCLING__
+
+#pragma link C++ class MpdLambdaPol+;
+#pragma link C++ class std::vector<MpdLambdaPol>+;
+#pragma link C++ class std::vector<tuple<int,float,float,float> >+;
+
+#endif

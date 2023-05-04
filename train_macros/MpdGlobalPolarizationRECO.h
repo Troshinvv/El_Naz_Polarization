@@ -90,7 +90,6 @@ private:
 
    TClonesArray         *mMCTracks        = nullptr;
    TClonesArray         *mKalmanTracks    = nullptr;
-   TClonesArray         *mMpdGlobalTracks = nullptr;
    TClonesArray         *ZDCHits          = nullptr;
    TClonesArray         *tpcPoints        = nullptr;
    TClonesArray         *fTofMatches      = nullptr;
@@ -199,10 +198,11 @@ private:
    vector<vector<double> > vecL1;
    vector<pair<double,double> > fVecL1, fVecL2;
    std::vector<MpdLambdaPol> vLambdas;
+   std::vector<MpdLambdaPol>* fvvvL;
    std::vector<tuple<int,float,float,float> > fvLambMpdgPtEtaY;
-   std::vector<tuple<int,float,float,float> > *vvvLpt = &fvLambMpdgPtEtaY;
+   std::vector<tuple<int,float,float,float> > *fvvvLpt;
    std::vector<tuple<int,float,float,float> > fvXiMpdgPtEtaY;
-   std::vector<tuple<int,float,float,float> > *fvvvXipt = &fvXiMpdgPtEtaY;
+   std::vector<tuple<int,float,float,float> > *fvvvXipt;
    multimap<int, MpdTpcKalmanTrack> fMapPiEvent; // for event mixing
    map<int,MpdVertex> fMapVertexEvent; // for event mixing
    map<int,int> ids, moths, pdgs, fLays;
@@ -281,13 +281,12 @@ private:
    void RecoEff(vector<int> &vecP, vector<int> &vecPi, bool use_pid = false);
 
    /**
-    * @brief Apply PID
+    * @brief Apply PID to get vecP and vecPi
     * 
-    * @param pid       PID
     * @param vecP      Proton vector
     * @param vecPi     Pion vector 
     */
-   void ApplyPid(MpdPid *pid, vector<int> &vecP, vector<int> &vecPi);
+   void ApplyPid(vector<int> &vecP, vector<int> &vecPi);
 
    /**
     * @brief construct Lambda candidates (proton/pion pairs)
