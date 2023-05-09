@@ -1,0 +1,163 @@
+#!/bin/bash
+
+#
+#SBATCH -D /lustre/home/user/n/nazarova/output/Reco/Selection/Chi/Histos
+#SBATCH --mem-per-cpu=8000M
+#SBATCH -J Collect_Histos
+#SBATCH -p cascade
+#SBATCH -t 1-4
+#SBATCH -a 1-2499
+#SBATCH -x n02p022,n02p023
+#
+#SBATCH -o /lustre/home/user/n/nazarova/output/Reco/Selection/Chi/Histos/logs/slurm_%A_%a.out
+#SBATCH -e /lustre/home/user/n/nazarova/output/Reco/Selection/Chi/Histos/logs/slurm_%A_%a.err
+#
+
+date
+hostname
+
+source /cvmfs/nica.jinr.ru/sw/os/login.sh
+module add mpddev
+export MPDROOT=/lustre/home/user/n/nazarova/mpd
+source $MPDROOT/config/env.sh
+
+export MACRO_DIR=/lustre/home/user/n/nazarova/macro/polarization-analysis-framework/macros
+export OUT=/lustre/home/user/n/nazarova/output/Reco/Selection/Chi/Histos
+
+echo $SLURM_ARRAY_TASK_ID
+((SLURM_ARRAY_TASK_ID--))
+echo $SLURM_ARRAY_TASK_ID
+SLURM_ARRAY_TASK_ID=$((SLURM_ARRAY_TASK_ID + 0))
+
+if [ -f "${OUT}/PHSD_selections_${SLURM_ARRAY_TASK_ID}.root" ]; then
+  exit 0
+fi
+
+mkdir d_${SLURM_ARRAY_JOB_ID}_${SLURM_ARRAY_TASK_ID}
+cd d_${SLURM_ARRAY_JOB_ID}_${SLURM_ARRAY_TASK_ID} 
+cp ${MACRO_DIR}/Selections_histogram_collection_train.cc Selections_histogram_collection_train.cc
+cp ${MACRO_DIR}/Makefile Makefile
+cp ${MACRO_DIR}/MpdLambdaPol.cxx MpdLambdaPol.cxx
+cp ${MACRO_DIR}/MpdLambdaPol.h MpdLambdaPol.h
+
+export INFILE=/lustre/home/user/n/nazarova/output/Reco/Selection/Chi/Trees/Anal_bin${SLURM_ARRAY_TASK_ID}.root
+
+export OUTFILEDIR=${OUT}
+export OUTFILE=PHSD_selections_${SLURM_ARRAY_TASK_ID}.root
+
+echo ""
+echo "Start Analysis"
+date
+echo ""
+
+rootcling -v4 -f mydict.cxx -rmf libmydict.rootmap -rml libmydict.so MpdLambdaPol.h
+g++ -shared -o libmydict.so mydict.cxx `root-config --cflags --libs` -fPIC
+
+make Selections_histogram_collection_train
+./Selections_histogram_collection_train -NITER 10 -NITER_CENT 4 -CENT_CUT 70. -cent_cut_choice 0 -inname $INFILE -outnamedir $OUTFILEDIR -outname $OUTFILE
+
+cd ..
+rm -rf d_${SLURM_ARRAY_JOB_ID}_${SLURM_ARRAY_TASK_ID}
+
+echo "End File 1"
+echo "---------------"
+date
+
+SLURM_ARRAY_TASK_ID=$((SLURM_ARRAY_TASK_ID + 2498))
+echo $SLURM_ARRAY_TASK_ID
+
+mkdir d_${SLURM_ARRAY_JOB_ID}_${SLURM_ARRAY_TASK_ID}
+cd d_${SLURM_ARRAY_JOB_ID}_${SLURM_ARRAY_TASK_ID} 
+cp ${MACRO_DIR}/Selections_histogram_collection_train.cc Selections_histogram_collection_train.cc
+cp ${MACRO_DIR}/Makefile Makefile
+cp ${MACRO_DIR}/MpdLambdaPol.cxx MpdLambdaPol.cxx
+cp ${MACRO_DIR}/MpdLambdaPol.h MpdLambdaPol.h
+
+INFILE=/lustre/home/user/n/nazarova/output/Reco/Selection/Chi/Trees/Anal_bin${SLURM_ARRAY_TASK_ID}.root
+
+OUTFILE=PHSD_selections_${SLURM_ARRAY_TASK_ID}.root
+
+echo ""
+echo "Start Analysis"
+date
+echo ""
+
+rootcling -v4 -f mydict.cxx -rmf libmydict.rootmap -rml libmydict.so MpdLambdaPol.h
+g++ -shared -o libmydict.so mydict.cxx `root-config --cflags --libs` -fPIC
+
+make Selections_histogram_collection_train
+./Selections_histogram_collection_train -NITER 10 -NITER_CENT 4 -CENT_CUT 70. -cent_cut_choice 0 -inname $INFILE -outnamedir $OUTFILEDIR -outname $OUTFILE
+
+cd ..
+rm -rf d_${SLURM_ARRAY_JOB_ID}_${SLURM_ARRAY_TASK_ID}
+
+echo "End File 2"
+echo "---------------"
+date
+
+SLURM_ARRAY_TASK_ID=$((SLURM_ARRAY_TASK_ID + 4998))
+echo $SLURM_ARRAY_TASK_ID
+
+mkdir d_${SLURM_ARRAY_JOB_ID}_${SLURM_ARRAY_TASK_ID}
+cd d_${SLURM_ARRAY_JOB_ID}_${SLURM_ARRAY_TASK_ID} 
+cp ${MACRO_DIR}/Selections_histogram_collection_train.cc Selections_histogram_collection_train.cc
+cp ${MACRO_DIR}/Makefile Makefile
+cp ${MACRO_DIR}/MpdLambdaPol.cxx MpdLambdaPol.cxx
+cp ${MACRO_DIR}/MpdLambdaPol.h MpdLambdaPol.h
+
+INFILE=/lustre/home/user/n/nazarova/output/Reco/Selection/Chi/Trees/Anal_bin${SLURM_ARRAY_TASK_ID}.root
+
+OUTFILE=PHSD_selections_${SLURM_ARRAY_TASK_ID}.root
+
+echo ""
+echo "Start Analysis"
+date
+echo ""
+
+rootcling -v4 -f mydict.cxx -rmf libmydict.rootmap -rml libmydict.so MpdLambdaPol.h
+g++ -shared -o libmydict.so mydict.cxx `root-config --cflags --libs` -fPIC
+
+make Selections_histogram_collection_train
+./Selections_histogram_collection_train -NITER 10 -NITER_CENT 4 -CENT_CUT 70. -cent_cut_choice 0 -inname $INFILE -outnamedir $OUTFILEDIR -outname $OUTFILE
+
+cd ..
+rm -rf d_${SLURM_ARRAY_JOB_ID}_${SLURM_ARRAY_TASK_ID}
+
+echo "End File 3"
+echo "---------------"
+date
+
+SLURM_ARRAY_TASK_ID=$((SLURM_ARRAY_TASK_ID + 7497))
+echo $SLURM_ARRAY_TASK_ID
+if [ $SLURM_ARRAY_TASK_ID -gt 7700 ]; then
+  exit 0
+fi
+
+mkdir d_${SLURM_ARRAY_JOB_ID}_${SLURM_ARRAY_TASK_ID}
+cd d_${SLURM_ARRAY_JOB_ID}_${SLURM_ARRAY_TASK_ID} 
+cp ${MACRO_DIR}/Selections_histogram_collection_train.cc Selections_histogram_collection_train.cc
+cp ${MACRO_DIR}/Makefile Makefile
+cp ${MACRO_DIR}/MpdLambdaPol.cxx MpdLambdaPol.cxx
+cp ${MACRO_DIR}/MpdLambdaPol.h MpdLambdaPol.h
+
+INFILE=/lustre/home/user/n/nazarova/output/Reco/Selection/Chi/Trees/Anal_bin${SLURM_ARRAY_TASK_ID}.root
+
+OUTFILE=PHSD_selections_${SLURM_ARRAY_TASK_ID}.root
+
+echo ""
+echo "Start Analysis"
+date
+echo ""
+
+rootcling -v4 -f mydict.cxx -rmf libmydict.rootmap -rml libmydict.so MpdLambdaPol.h
+g++ -shared -o libmydict.so mydict.cxx `root-config --cflags --libs` -fPIC
+
+make Selections_histogram_collection_train
+./Selections_histogram_collection_train -NITER 10 -NITER_CENT 4 -CENT_CUT 70. -cent_cut_choice 0 -inname $INFILE -outnamedir $OUTFILEDIR -outname $OUTFILE
+
+cd ..
+rm -rf d_${SLURM_ARRAY_JOB_ID}_${SLURM_ARRAY_TASK_ID}
+
+echo "End File 4"
+echo "---------------"
+date
