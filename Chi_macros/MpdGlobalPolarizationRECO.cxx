@@ -933,7 +933,7 @@ void MpdGlobalPolarizationRECO::fillHistograms(MpdAnalysisEvent &event)
 				{
 					if(lamb->chi2s[0] <= chi_pi_value[iter_cent]) continue; 
 					if(lamb->chi2s[1] <= chi_p_value[iter_cent]) continue; 
-					if(lamb->chi2h >= chi_pi_value[iter_cent]) continue; 
+					if(lamb->chi2h >= chi_V0_value[iter_cent]) continue; 
 					if(lamb->path <= lambda_path_value[iter_cent]) continue; 
 					if(lamb->angle >= lambda_angle_value[iter_cent]) continue;	
 				}
