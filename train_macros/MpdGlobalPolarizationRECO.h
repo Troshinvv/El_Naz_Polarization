@@ -24,7 +24,6 @@
 
 #include "MpdAnalysisTask2.h"
 #include "MpdLambdaPol.h"
-#include "hyperLinkDef.h"
 
 class MpdGlobalPolarizationRECO : public MpdAnalysisTask2 {
    ClassDef(MpdGlobalPolarizationRECO, 1);
@@ -48,6 +47,7 @@ private:
    int NITER;           // number of angular bins
    int cent_cut_choice; // choice of centrality cut (0 - no cent cut, 1 - with cent cut)
    double cent_cut;     // value for centrality cut
+   int particle_choice;  // particle choice (pdg of hyperon) --- currently Lambda (3122) or anti-Lambda (-3122))
    int nMix;            // number of events to mix
 
    // Track selection cuts (corresponding to centrality determination)
@@ -62,7 +62,6 @@ private:
    double energy;       // energy
    double coef;         // coefficient   
 
-   std::string particle_choice; // particle choice (Lambda or anti-Lambda)
    std::string generator;       // generator name
    std::string tracking;        // tracking name
    std::string MCFile;          // MC file with geometry
@@ -103,28 +102,31 @@ private:
    TList mHistoList;
 
    // General QA
-   TH1D *mhEvents             = nullptr;
-   TH1F *mhVertex             = nullptr;
-   TH1F *mhCentrality         = nullptr;
-   TH1D *NCentr               = nullptr;
-   TH1D *Resolution_EP1_true  = nullptr;
-   TH1D *Resolution_EP1_exp   = nullptr;
-   TH1D *hMassL               = nullptr;
-   TH1D *hMassLsig            = nullptr;
-   TH1D *hMassLbkg            = nullptr;
-   TH1D *Lpolar_full          = nullptr;
-   TH1D *hPIDflag             = nullptr;  
-   TH1D *hLambFlag            = nullptr;  
-   TH1D *hXiFlag              = nullptr;  
-   TH1D *hPtProt              = nullptr;  
-   TH1D *hPtProtT             = nullptr; 
-   TH1D *hPtProtF             = nullptr; 
+   TH1D *hEvents               = nullptr;
+   TH1F *hVertex               = nullptr;
+   TH1F *hCentrality           = nullptr;
+   TH1D *hNevCentr             = nullptr;
+   TH1D *hResolution_EP1_true  = nullptr;
+   TH1D *hResolution_EP1_reco  = nullptr;
+   TH1D *hMassL                = nullptr;
+   TH1D *hMassLsig             = nullptr;
+   TH1D *hMassLbkg             = nullptr;
+   TH1D *hPIDflag              = nullptr;  
+   TH1D *hLambFlag             = nullptr;  
+   TH1D *hXiFlag               = nullptr;  
+   TH1D *hPtProt               = nullptr;  
+   TH1D *hPtProtT              = nullptr; 
+   TH1D *hPtProtF              = nullptr; 
 
-   TTree *results;
+   TTree *results_tree;
 
    TH1D **hm0_full;
    TH1D *hm0_Full;
    TH1D *hm0_before_full;
+
+   //testing for mixing:
+   TH1D *hm0_before_full_mix;
+
    TH1D ***hm0;
    TH1D **hm0_before;
    TH1D **hm0_after;
@@ -147,6 +149,11 @@ private:
    TH1D **Chi_v0;
    TH1D **Path_hist;
    TH1D **Angle_hist; 
+
+   //new stuff to look at pt and eta dependence:
+   TProfile **hPolvsPt;
+	TProfile **hPolvsEta;
+
 	
 
    //general parameters:
@@ -163,6 +170,17 @@ private:
    int pdgCodeAXi       = -3312; // pdg of antiXi- (1.3213 GeV/c)
    int pdgCodeKm        = -321; // pdg of K-
 
+   double massPr      = 0.938272;  // mass of proton
+   double massPi      = 0.139570;  // mass of pion
+   double massL0      = 1.11568;   // mass of lambda (1.11568)
+
+   int pdgCodeHyperon;       // pdg of analyzed hyperon (should be set in the config file as particle_choice)
+   int pdgCodeDaughterBar;   // pdg of daughter particle baryon (proton in case of Lambda, antiproton in case of antiLambda)
+   int pdgCodeDaughterMes;   // pdg of daughter particle meson (pi- in case of Lambda, pi+ in case of antiLambda)
+   double massHyperon;       // mass of analyzed hyperon
+   double massDaughterBar;   // mass of daughter particle
+   double massDaughterMes;   // mass of daughter particle
+
    //defining the parameters for the analysis (should check this at some point):
    const Double_t gC2p      = 3.; //4.; //9.;           //chi2 of p to PV
    const Double_t gC2pi     = 5.; //5.; //11.;          //chi2 of pion to PV
@@ -175,16 +193,25 @@ private:
    double xmin_anglemin = 0.;
 	double xmax_anglemax = 2.*pi;
 
+   double phiRP;           // RP angle 
+   double phiEP;           // 1st-order EP angle (from FHCal)
+   double ResEP;           // cos(PhiEP_FHCal_Full - PhiRP) for calculation of true 1st-order EP resolution
+   double ResEPSub;        // cos(PhiEP_FHCal_S - PhiEP_FHCal_N) for calculation of reconstructed 1st-order EP resolution 
+   double Centrality_tpc;  // Centrality from TPC
+   double b0;              // impact parameter
+
+   double *SubEvRes1;      // cos(PhiEP_FHCal_S - PhiEP_FHCal_N) for calculation of reconstructed 1st-order EP resolution 
+   double *ResEP1_true; 	// cos(PhiEP_FHCal_Full - PhiRP) for calculation of true 1st-order EP resolution
+
    int idMax;
-   double b0, phiRP_mc, phiEP_mc, ResEP_mc, ResEPSub_mc, Centrality_tpc;
-   double omega_value_full;
-   double *SubEvRes1, *ResEP1_true; 	
+   double omega_value_full;	
+   double chi_pi_value_full;	
+   double chi_p_value_full;	
+   double chi_V0_value_full;	
+   double lambda_path_value_full;	
+   double lambda_angle_value_full;
+
    double *omega_value;
-   double *chi_pi_value;
-	double *chi_p_value;
-	double *chi_V0_value;
-	double *lambda_path_value;
-	double *lambda_angle_value;
    double *angle_min;
    double *angle_max;
 
@@ -251,9 +278,8 @@ private:
     * @brief Calculate Lambda Acceptance
     * 
     * @param event    event
-    * @param idMax    maxTPC track ID
     */
-   void CalculateLambdaAcceptance(MpdAnalysisEvent &event, int idMax);
+   void CalculateLambdaAcceptance(MpdAnalysisEvent &event);
 
    /**
     * @brief Construct a helix

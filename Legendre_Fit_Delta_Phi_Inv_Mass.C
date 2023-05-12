@@ -135,9 +135,9 @@ void Legendre_Fit_Delta_Phi_Inv_Mass(TString infile = "/scratch2/nazarova/tests/
 	
 	//dNLambda_MC = (TH1D*)myFile_data->Get("dNLambda_MC");
 	//dNLambda = (TH1D*)myFile_data->Get("dNLambda");
-	TH1F *NCentr = (TH1F*) myFile_data->Get("NCentr");
-	TH1D *Resolution_EP1_exp_sub = (TH1D*) myFile_data->Get("Resolution_EP1_exp");
-	TH1D *Resolution_EP1_true = (TH1D*) myFile_data->Get("Resolution_EP1_true");
+	TH1F *NCentr = (TH1F*) myFile_data->Get("hNevCentr");
+	TH1D *Resolution_EP1_exp_sub = (TH1D*) myFile_data->Get("hResolution_EP1_reco");
+	TH1D *Resolution_EP1_true = (TH1D*) myFile_data->Get("hResolution_EP1_true");
 	
 	for(int iter_cent = 0; iter_cent < NITER_CENT; iter_cent++)
 	{

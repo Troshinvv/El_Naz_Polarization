@@ -4,9 +4,9 @@
 #include "MpdVertex.h"
 #include "MpdEvent.h"
 #include "TFile.h"
+#include "TGeoManager.h"
 #include "MpdGlobalPolarizationRECO.h"
 #include "MpdLambdaPol.h"
-#include "hyperLinkDef.h"
 
 ClassImp(MpdGlobalPolarizationRECO);
 
@@ -22,7 +22,7 @@ MpdGlobalPolarizationRECO::MpdGlobalPolarizationRECO(const char *name, const cha
    param("NITER", NITER, 20);
    param("cent_cut_choice", cent_cut_choice, 0);
    param("cent_cut", cent_cut, 70.0);
-   param("particle_choice", particle_choice, "Lambda");
+   param("particle_choice", particle_choice, 3122);
    param("nMix", nMix, 5);
    param("MCFile", MCFile, "");
    param("sigM", sigM, 4.0);
@@ -61,6 +61,31 @@ void MpdGlobalPolarizationRECO::UserInit()
 	fEvNo = -1;
 
 	TH1::AddDirectory(kFALSE); // sets a global switch disabling the reference to histos in gROOT and their overwriting
+
+	pdgCodeHyperon = particle_choice;
+	if(pdgCodeHyperon == pdgCodeL0)    
+	{
+		cout << "You have chosen to analyze Lambda hyperons: " << " pdg: " << pdgCodeHyperon << endl;
+		pdgCodeDaughterBar = pdgCodePr;
+		pdgCodeDaughterMes = pdgCodeNeg;
+		massHyperon = massL0;
+		massDaughterBar = massPr;
+		massDaughterMes = massPi;
+		cout << "massHyperon: " << massHyperon << "; massDaughterBar: " << massDaughterBar << "; massDaughterMes: " << massDaughterMes << endl;
+	}else if(pdgCodeHyperon == pdgCodeAL0)    
+	{
+		cout << "You have chosen to analyze anti-Lambda hyperons: " << " pdg: " << pdgCodeHyperon << endl;
+		pdgCodeDaughterBar = pdgCodeAPr;
+		pdgCodeDaughterMes = pdgCodePos;
+		massHyperon = massL0;
+		massDaughterBar = massPr;
+		massDaughterMes = massPi;
+		cout << "massHyperon: " << massHyperon << "; massDaughterBar: " << massDaughterBar << "; massDaughterMes: " << massDaughterMes << endl;
+	}else
+	{
+		cout << "This pdg code for particle_choice is not defined! Please provide the definition in the code." << endl;
+		exit(0);
+	}
 	
 	if (NITER_CENT == 4)
 	{		
@@ -87,20 +112,19 @@ void MpdGlobalPolarizationRECO::UserInit()
 
 	// Creating the necessary histograms:
 	// Only the ones required for "selection" or "analysis" will be saved
-	mhEvents = new TH1D("hEvents", "Number of events", 10, 0., 10.);
-	mhVertex = new TH1F("hVertex", "Event vertex distribution", 100, -200., 200.);
-	mhCentrality = new TH1F("hCentrality", "Centrality distribution", 100, 0., 100.);
+	hEvents = new TH1D("hEvents", "Number of events", 10, 0., 10.);
+	hVertex = new TH1F("hVertex", "Event vertex distribution", 100, -200., 200.);
+	hCentrality = new TH1F("hCentrality", "Centrality distribution", 100, 0., 100.);
 
-	NCentr = new TH1D("NCentr","NCentr",NITER_CENT,_CentrBins);
-	Resolution_EP1_true = new TH1D("Resolution_EP1_true","Resolution_EP1_true",NITER_CENT,_CentrBins);
-	Resolution_EP1_exp = new TH1D("Resolution_EP1_exp","Resolution_EP1_exp",NITER_CENT,_CentrBins);
+	hNevCentr = new TH1D("hNevCentr","Events in centrality bins",NITER_CENT,_CentrBins);
+	hResolution_EP1_true = new TH1D("hResolution_EP1_true","True EP1 resolution",NITER_CENT,_CentrBins);
+	hResolution_EP1_reco = new TH1D("hResolution_EP1_reco","Reco EP1 resolution",NITER_CENT,_CentrBins);
 
 	hMassL = new TH1D("hMassL", "Lambda mass", 50, 1.070, 1.170);
 	hMassLsig = new TH1D("hMassLsig", "Lambda mass (signal)", 50, 1.070, 1.170);
 	hMassLbkg = new TH1D("hMassLbkg", "Lambda mass (bckg.)", 50, 1.070, 1.170);
-	Lpolar_full = new TH1D("Lpolar_full", "Lpolar_full", 100, -1., 1.);
 	hPIDflag = new TH1D("hPIDflag", "PID flags", 12, 0, 12);
-	hLambFlag = new TH1D("hLambFlag","Flags for lambda", 14, 0, 14);
+	hLambFlag = new TH1D("hLambFlag","Flags for Lambda", 14, 0, 14);
 	hXiFlag = new TH1D("hXiFlag","Flags for Xi", 14, 0, 14);
 	hPtProt = new TH1D("hPtProt","Proton Pt", 20, 0, 5);
 	hPtProtT = new TH1D("hPtProtT","True Proton Pt", 20, 0, 5);
@@ -109,28 +133,27 @@ void MpdGlobalPolarizationRECO::UserInit()
 	fvvvL = &vLambdas;
 	fvvvLpt = &fvLambMpdgPtEtaY;
 
-	results = new TTree("event","Event");
-	results->Branch("b0",&b0,"b0/F"); //impact parameter
-	results->Branch("Centrality_tpc",&Centrality_tpc,"Centrality_tpc/F"); //event centrality 
-	results->Branch("ntr",&ntr,"ntr/I"); // number of tracks selected for analysis
-	TBranch *br = results->Branch("l0","std::vector<MpdLambdaPol>", &fvvvL); //lambda candidates
-	results->Branch("ptetayl0","std::vector<tuple<int,float,float,float> >", &fvvvLpt); //lambda phase space (MC)
-	results->Branch("nLamb",&nLamb,"nLamb/I"); //number of Lambda (in collection)
-	results->Branch("nLamb_MC",&nLamb_MC,"nLamb_MC/I"); //number of Lambda (MC)
+	results_tree = new TTree("event","Event");
+	results_tree->Branch("b0",&b0,"b0/D");                                                     //impact parameter
+	results_tree->Branch("Centrality_tpc",&Centrality_tpc,"Centrality_tpc/D");                 //event centrality 
+	//results_tree->Branch("ntr",&ntr,"ntr/I");                                                  //number of tracks selected for analysis
+	TBranch *br = results_tree->Branch("l0","std::vector<MpdLambdaPol>", &fvvvL);              //lambda candidates
+	results_tree->Branch("ptetayl0","std::vector<tuple<int,float,float,float> >", &fvvvLpt);   //lambda phase space (MC)
+	results_tree->Branch("nLamb",&nLamb,"nLamb/I");                                            //number of Lambda (in collection)
+	results_tree->Branch("nLamb_MC",&nLamb_MC,"nLamb_MC/I");                                   //number of Lambda (MC)
 	
 
 	if(analysis_choice == "analysis")
 	{
-		fOutputList->Add(mhEvents);
-		fOutputList->Add(mhVertex);
-		fOutputList->Add(mhCentrality);
-		fOutputList->Add(NCentr);
-		fOutputList->Add(Resolution_EP1_true);
-		fOutputList->Add(Resolution_EP1_exp);
+		fOutputList->Add(hEvents);
+		fOutputList->Add(hVertex);
+		fOutputList->Add(hCentrality);
+		fOutputList->Add(hNevCentr);
+		fOutputList->Add(hResolution_EP1_true);
+		fOutputList->Add(hResolution_EP1_reco);
 		fOutputList->Add(hMassL);
 		fOutputList->Add(hMassLsig);
 		fOutputList->Add(hMassLbkg);
-		fOutputList->Add(Lpolar_full);
 		fOutputList->Add(hPIDflag);
 		fOutputList->Add(hLambFlag);
 		fOutputList->Add(hXiFlag);
@@ -160,8 +183,12 @@ void MpdGlobalPolarizationRECO::UserInit()
 		Path_hist = new TH1D*[NITER_CENT];
 		Angle_hist = new TH1D*[NITER_CENT];
 		hm0 = new TH1D**[NITER_CENT];
-		angle_min = (double*) malloc(sizeof(double) * NITER);
-		angle_max = (double*) malloc(sizeof(double) * NITER);
+		angle_min = new double[NITER];
+		angle_max = new double[NITER];
+
+		//new stuff to look at pt and eta dependence:
+		hPolvsPt = new TProfile*[NITER_CENT];
+		hPolvsEta = new TProfile*[NITER_CENT];
 
 		double step_angle = (xmax_anglemax - xmin_anglemin)/NITER;
 		cout << "xmin_anglemin = " << xmin_anglemin << "; xmax_anglemax = " << xmax_anglemax << endl;
@@ -174,7 +201,6 @@ void MpdGlobalPolarizationRECO::UserInit()
 
 		if(selection_choice == "omega2")
 		{
-			omega_value = (double*) malloc(sizeof(double) * NITER_CENT);
 			//reading the omega_2 values from the file:
 			cout << "Topology selection using omega_2 parameter" << endl;
 			ifstream selections_file;
@@ -185,38 +211,11 @@ void MpdGlobalPolarizationRECO::UserInit()
 				exit(0);
 			}
 			selections_file >> omega_value_full;
-			Int_t nlines = 0;
-			while (true) 
-			{
-				if(nlines > NITER_CENT)
-				{
-					cout << "Too many lines in the selections file! Check it! " << endl;
-					exit(0);
-				}
-				selections_file >> omega_value[nlines];
-				if (!selections_file.good()) break;
-				nlines++;
-			}
-			printf("found %d points\n",nlines);
-			if(nlines != NITER_CENT)
-			{
-				cout << "Amount of omega_2 selection cuts is not equal to the centrality bins: " << "; nlines = " << nlines << "; NITER_CENT = " << NITER_CENT << endl;
-				exit(0);
-			}
 			selections_file.close();
 			cout << "omega_value_full =  " << omega_value_full << endl;
-			for(int iter_cent = 0; iter_cent < NITER_CENT; iter_cent++)
-			{
-				cout << "omega_value[iter_cent] =  " << omega_value[iter_cent] << endl;
-			}
 		}else if(selection_choice == "chi")
 		{
-			chi_pi_value = (double*) malloc(sizeof(double) * NITER_CENT);
-			chi_p_value = (double*) malloc(sizeof(double) * NITER_CENT);
-			chi_V0_value = (double*) malloc(sizeof(double) * NITER_CENT);
-			lambda_path_value = (double*) malloc(sizeof(double) * NITER_CENT);
-			lambda_angle_value = (double*) malloc(sizeof(double) * NITER_CENT);
-			//reading the chi selection values from the file:
+			// reading the chi selection values from the file:
 			cout << "Topology selection using chi selection parameters" << endl;
 			ifstream selections_file;
 			selections_file.open(selections_values);
@@ -225,33 +224,12 @@ void MpdGlobalPolarizationRECO::UserInit()
 				cout << "File with selection values does not exist! Please run the 'selection' choice first! Exiting... " << endl;
 				exit(0);
 			}
-			
-			Int_t nlines = 0;
-			while (true) 
-			{
-				if(nlines > NITER_CENT)
-				{
-					cout << "Too many lines in the selections file! Check it! " << endl;
-					exit(0);
-				}
-				selections_file >> chi_pi_value[nlines] >> chi_p_value[nlines] >> chi_V0_value[nlines] >> lambda_path_value[nlines] >> lambda_angle_value[nlines];
-				if (!selections_file.good()) break;
-				nlines++;
-			}
-			printf("found %d points\n",nlines);
-			if(nlines != NITER_CENT)
-			{
-				cout << "Amount of omega_2 selection cuts is not equal to the centrality bins: " << "; nlines = " << nlines << "; NITER_CENT = " << NITER_CENT << endl;
-				exit(0);
-			}
+			selections_file >> chi_pi_value_full >> chi_p_value_full >> chi_V0_value_full >> lambda_path_value_full >> lambda_angle_value_full;
 			selections_file.close();
-			for(int iter_cent = 0; iter_cent < NITER_CENT; iter_cent++)
-			{
-				cout << "iter_cent = " << iter_cent << "; chi_pi_value[iter_cent] =  " << chi_pi_value[iter_cent] << "; chi_p_value[iter_cent] =  " << chi_p_value[iter_cent] << "; chi_V0_value[iter_cent] =  " << chi_V0_value[iter_cent] << "; lambda_path_value[iter_cent] =  " << lambda_path_value[iter_cent] << "; lambda_angle_value[iter_cent] =  " << lambda_angle_value[iter_cent] << endl;
-			}
+			cout << "chi_pi_value_full =  " << chi_pi_value_full << "; chi_p_value_full =  " << chi_p_value_full << "; chi_V0_value_full =  " << chi_V0_value_full << "; lambda_path_value_full =  " << lambda_path_value_full << "; lambda_angle_value_full =  " << lambda_angle_value_full << endl;
 		}else 
 		{
-			cout << "No such analysis_choice defined yet! Please choose either 'omega2' or 'chi'! Exiting... " << endl;
+			cout << "No such selection_choice defined yet! Please choose either 'omega2' or 'chi'! Exiting... " << endl;
 			exit(0);
 		}
 
@@ -298,6 +276,13 @@ void MpdGlobalPolarizationRECO::UserInit()
 			fOutputList->Add(Path_hist[iter_cent]);
 			Angle_hist[iter_cent] = new TH1D(Form("Angle_hist_%d", iter_cent),Form("Angle_hist_%d", iter_cent), NITER, 0., 1.6);
 			fOutputList->Add(Angle_hist[iter_cent]);
+
+			//new stuff to look at pt and eta dependence:
+			hPolvsPt[iter_cent] = new TProfile(Form("hPolvsPt_%d", iter_cent),Form("hPolvsPt_%d", iter_cent), NITER, 0., 3.0);
+			fOutputList->Add(hPolvsPt[iter_cent]);
+			hPolvsEta[iter_cent] = new TProfile(Form("hPolvsEta_%d", iter_cent),Form("hPolvsEta_%d", iter_cent), NITER, -1.5, 1.5);
+			fOutputList->Add(hPolvsEta[iter_cent]);
+			
 			
 			for(int iter = 0; iter < NITER; iter++)
 			{
@@ -315,26 +300,16 @@ void MpdGlobalPolarizationRECO::UserInit()
 			hm0_full = new TH1D*[NITER_Selections];
 			hm0_before_full = new TH1D("hm0_before_full", "hm0_before_full", 100, 1.07, 1.17);
 			fOutputList->Add(hm0_before_full);
-			hm0_before = new TH1D*[NITER_CENT];
-			hm0 = new TH1D**[NITER_CENT];
-			omega_value = (double*) malloc(sizeof(double) * NITER_Selections);
+
+			//testing for mixing:
+			hm0_before_full_mix = new TH1D("hm0_before_full_mix", "hm0_before_full_mix", 100, 1.07, 1.17);
+			fOutputList->Add(hm0_before_full_mix);
+
+			omega_value = new double[NITER_Selections];
 			for(int iter_sel = 0; iter_sel < NITER_Selections; iter_sel++)
 			{
 				omega_value[iter_sel] = omega_start + omega_step*iter_sel;
 				cout << "iter_sel = " << iter_sel << "; omega_value = " << omega_value[iter_sel] << endl;
-			}
-			for(int iter_cent = 0; iter_cent < NITER_CENT; iter_cent++)
-			{
-				hm0[iter_cent] = new TH1D*[NITER_Selections];
-				hm0_before[iter_cent] = new TH1D(Form("hm0_before_%d", iter_cent),Form("hm0_before_%d", iter_cent), 100, 1.07, 1.17);
-				fOutputList->Add(hm0_before[iter_cent]);
-				
-				for(int iter_sel = 0; iter_sel < NITER_Selections; iter_sel++)
-				{
-					hm0[iter_cent][iter_sel] = new TH1D(Form("hm0_%d_%d", iter_cent, iter_sel),Form("hm0_%d_%d", iter_cent, iter_sel), 100, 1.07, 1.17);
-					fOutputList->Add(hm0[iter_cent][iter_sel]);
-				}
-				
 			}
 			for(int iter_sel = 0; iter_sel < NITER_Selections; iter_sel++)
 			{
@@ -344,32 +319,8 @@ void MpdGlobalPolarizationRECO::UserInit()
 		}else if(selection_choice == "chi")
 		{
 			cout << "Topology selection using chi parameters" << endl;
-			/*
-			hm0_before_full = new TH1D("hm0_before_full", "hm0_before_full", 100, 1.07, 1.17);
-			fOutputList->Add(hm0_before_full);
-			hm0_before = new TH1D*[NITER_CENT];
-			chi_pi_value = (double*) malloc(sizeof(double) * NITER_Selections);
-			chi_p_value = (double*) malloc(sizeof(double) * NITER_Selections);
-			chi_V0_value = (double*) malloc(sizeof(double) * NITER_Selections);
-			lambda_path_value = (double*) malloc(sizeof(double) * NITER_Selections);
-			lambda_angle_value = (double*) malloc(sizeof(double) * NITER_Selections);
-			for(int iter_sel = 0; iter_sel < NITER_Selections; iter_sel++)
-			{
-				chi_pi_value[iter_sel] = chi_pi_start + chi_pi_step*iter_sel;
-				chi_p_value[iter_sel] = chi_p_start + chi_p_step*iter_sel;
-				chi_V0_value[iter_sel] = chi_V0_start + chi_V0_step*iter_sel;
-				lambda_path_value[iter_sel] = lambda_path_start + lambda_path_step*iter_sel;
-				lambda_angle_value[iter_sel] = lambda_angle_start + lambda_angle_step*iter_sel;
-				cout << "iter_sel = " << iter_sel << "; chi_pi_value = " << chi_pi_value[iter_sel] << "; chi_p_value = " << chi_p_value[iter_sel] << "; chi_V0_value = " << chi_V0_value[iter_sel] << "; lambda_path_value = " << lambda_path_value[iter_sel] << "; lambda_angle_value = " << lambda_angle_value[iter_sel] << endl;
-			}
-			for(int iter_cent = 0; iter_cent < NITER_CENT; iter_cent++)
-			{
-				hm0_before[iter_cent] = new TH1D(Form("hm0_before_%d", iter_cent),Form("hm0_before_%d", iter_cent), 100, 1.07, 1.17);
-				fOutputList->Add(hm0_before[iter_cent]);				
-			}
-			*/
 			//Just do the tree for now:
-			fOutputList->Add(results);
+			fOutputList->Add(results_tree);
 		}
 	}else 
 	{
@@ -396,16 +347,16 @@ void MpdGlobalPolarizationRECO::ProcessEvent(MpdAnalysisEvent &event)
 		return;
 	}
 
-	phiRP_mc = 0.;
-	phiEP_mc = 0.;
-	ResEP_mc = 0.;
-	ResEPSub_mc = 0.;
+	phiRP = 0.;
+	phiEP = 0.;
+	ResEP = 0.;
+	ResEPSub = 0.;
 	b0 = event.fMCEventHeader->GetB();
-	phiRP_mc = event.fMCEventHeader->GetRotZ();
-	phiRP_mc = TMath::ATan2(TMath::Sin(phiRP_mc),TMath::Cos(phiRP_mc));
-	phiEP_mc = event.fMpdEP.GetPhiEP_FHCal_F_all();
-	ResEP_mc = TMath::Cos(phiEP_mc - phiRP_mc);
-	ResEPSub_mc = TMath::Cos(event.fMpdEP.GetPhiEP_FHCal_S_all() - event.fMpdEP.GetPhiEP_FHCal_N_all());
+	phiRP = event.fMCEventHeader->GetRotZ();
+	phiRP = TMath::ATan2(TMath::Sin(phiRP),TMath::Cos(phiRP));
+	phiEP = event.fMpdEP.GetPhiEP_FHCal_F_all();
+	ResEP = TMath::Cos(phiEP - phiRP);
+	ResEPSub = TMath::Cos(event.fMpdEP.GetPhiEP_FHCal_S_all() - event.fMpdEP.GetPhiEP_FHCal_N_all());
 
 	// For mixing
     if (nMix && fMapVertexEvent.size() > nMix) {
@@ -416,6 +367,7 @@ void MpdGlobalPolarizationRECO::ProcessEvent(MpdAnalysisEvent &event)
     }
     fMapVertexEvent[fEvNo] = *fMpdVert;
 
+	// Fills tuples for Lambda and Xi from MC (pdg,pt,eta,y information)
 	ParticleMCProperties(event);
 
 	TArrayI *indxs = fMpdVert->GetIndices();
@@ -431,7 +383,7 @@ void MpdGlobalPolarizationRECO::ProcessEvent(MpdAnalysisEvent &event)
     }
 
 	CollectTracks(event);
-	CalculateLambdaAcceptance(event, idMax);
+	CalculateLambdaAcceptance(event);
 
 	for (int j = 0; j < mKalmanTracks->GetEntriesFast(); j++) 
 	{
@@ -458,10 +410,12 @@ void MpdGlobalPolarizationRECO::ProcessEvent(MpdAnalysisEvent &event)
 	vector<MpdParticle*> vecL;
 	vecL.clear();
 	vLambdas.clear();
-	BuildLambda(vecP, vecPi, vecL, phiEP_mc);
-	nLamb = vecL.size();
-	results->Fill(); 
+	BuildLambda(vecP, vecPi, vecL, phiEP);
+	nLamb = vecL.size();  
+
+	results_tree->Fill(); 
 	
+
 	fillHistograms(event);
 
 	for (int ipart = 0; ipart < nLamb; ipart++) delete vecL[ipart];
@@ -489,6 +443,7 @@ bool MpdGlobalPolarizationRECO::selectEvent(MpdAnalysisEvent &event)
 			cout << "Parameter MCFile must be set in the config file!" << endl;
 			exit(0);
 		}
+		cout << "Reading Geo from simulation file for track refit ... " << endl;
 		simMC = new TChain("mpdsim");
 		simMC->AddFile(TString(MCFile)); //using the one from Request 25 (should be same geometry)
 		simMC->SetName("mpdsim1");
@@ -501,18 +456,18 @@ bool MpdGlobalPolarizationRECO::selectEvent(MpdAnalysisEvent &event)
 		recoTpc = new MpdTpcKalmanFilter(*secGeo,"TPC Kalman filter");
 		recoTpc->FillGeoScheme();
 		isInitialized = true;
-
-		//new version from Zinchenko, without the MC geometry file ---- but crashes for me
+		
 		/*
+		//new version from Zinchenko, without the MC geometry file ---- but crashes for me
 		cout << " GeoMan: " << gGeoManager << endl;
 		secGeo = new TpcSectorGeoAZ();
-		recoTpc = new MpdTpcKalmanFilter(*secGeo, "Kalman filter");
+		recoTpc = new MpdTpcKalmanFilter(*secGeo, "TPC Kalman filter");
 		recoTpc->FillGeoScheme();
 		isInitialized = true;
 		*/
 	}
 	
-	mhEvents->Fill(0.5); // Number of full events
+	hEvents->Fill(0.5); // Number of full events
 
 	mMCTracks = event.fMCTrack;
 	mKalmanTracks = event.fTPCKalmanTrack;
@@ -537,7 +492,7 @@ bool MpdGlobalPolarizationRECO::selectEvent(MpdAnalysisEvent &event)
 		return false;
 	}
 
-	mhEvents->Fill(1.5); // Number of events with filled vertex
+	hEvents->Fill(1.5); // Number of events with filled vertex
 
 	if (!event.fVertex) // if even vertex not filled, skip event
 	{ 
@@ -554,7 +509,7 @@ bool MpdGlobalPolarizationRECO::selectEvent(MpdAnalysisEvent &event)
 		return false;
 	}
 	
-	mhEvents->Fill(2.5); // Number of events after vertex checks (where the vertex was filled, reconstructed and is within the limits (less than the vertex cut))
+	hEvents->Fill(2.5); // Number of events after vertex checks (where the vertex was filled, reconstructed and is within the limits (less than the vertex cut))
 	
 	Centrality_tpc = event.getCentrTPC();
 	
@@ -563,11 +518,11 @@ bool MpdGlobalPolarizationRECO::selectEvent(MpdAnalysisEvent &event)
 		return false;
 	}
 
-	mhEvents->Fill(3.5); // Number of events, satisfying all the vertex criteria and having defined centrality
+	hEvents->Fill(3.5); // Number of events, satisfying all the vertex criteria and having defined centrality
 
-	mhVertex->Fill(mPrimaryVertex.Z());
+	hVertex->Fill(mPrimaryVertex.Z());
 
-	mhCentrality->Fill(Centrality_tpc);
+	hCentrality->Fill(Centrality_tpc);
 
 	return true;
 }
@@ -666,7 +621,7 @@ void MpdGlobalPolarizationRECO::CollectTracks(MpdAnalysisEvent &event)
 		// Get track info
 		TClonesArray *hits = tr->GetTrHits();
 		int nHits = hits->GetEntriesFast();
-		FairMCPoint *p1 = 0x0;
+		//FairMCPoint *p1 = 0x0; // this was used only in the further case "if(0)", which is commented out
 
 		for (int ih = nHits-1; ih >= 0; ih--) 
 		{
@@ -674,7 +629,7 @@ void MpdGlobalPolarizationRECO::CollectTracks(MpdAnalysisEvent &event)
 			if (hit->GetUniqueID()) continue; 
 			if (0) 
 			{
-				
+				// all was commented out
 			} else 
 			{
 				// No MC points
@@ -696,18 +651,19 @@ void MpdGlobalPolarizationRECO::CollectTracks(MpdAnalysisEvent &event)
 			}
 			break;
 		} // for (Int_t ih = nHits-1; ih >= 0;
-
+		/*
 		// MC track
 		TVector3 mom;
 		MpdMCTrack* mcTr = (MpdMCTrack*) mMCTracks->UncheckedAt(id);
 		mcTr->GetMomentum(mom);
 		pots[id] = mom.Pt();
 		ths[id] = mom.Theta();
+		*/ // this doesn't seem to be used anywhere...
 	} // for (Int_t j = 0; j < nITS;
 
 	idMax = ids.rbegin()->first;
 }
-void MpdGlobalPolarizationRECO::CalculateLambdaAcceptance(MpdAnalysisEvent &event, int idMax)
+void MpdGlobalPolarizationRECO::CalculateLambdaAcceptance(MpdAnalysisEvent &event)
 {
 	// Lambda acceptance
 	TVector3 genVert;
@@ -725,7 +681,7 @@ void MpdGlobalPolarizationRECO::CalculateLambdaAcceptance(MpdAnalysisEvent &even
 		}
 		TVector3 pos;
 		mcTr->GetStartVertex(pos);
-		rads[j] = pos.Pt();
+		//rads[j] = pos.Pt(); // this doesn't seem to be used anywhere...
 		moths[j] = -1;
 		pdgs[j] = mcTr->GetPdgCode();
 		if (mothID >= 0) 
@@ -811,20 +767,20 @@ void MpdGlobalPolarizationRECO::CalculateLambdaAcceptance(MpdAnalysisEvent &even
 
 void MpdGlobalPolarizationRECO::fillHistograms(MpdAnalysisEvent &event)
 {
-	NCentr->Fill(Centrality_tpc);
+	hNevCentr->Fill(Centrality_tpc);
 	
 	for(int iter_cent = 0; iter_cent < NITER_CENT; iter_cent++)
 	{
 		if(Centrality_tpc >= centrality_max[iter_cent] || Centrality_tpc < centrality_min[iter_cent]) continue; 
 		
-		ResEP1_true[iter_cent] += ResEP_mc;
-		SubEvRes1[iter_cent] += ResEPSub_mc;		
+		ResEP1_true[iter_cent] += ResEP;
+		SubEvRes1[iter_cent] += ResEPSub;		
 	}
 	
 	for(int iter_cent = 0; iter_cent < NITER_CENT; iter_cent++)
 	{
-		Resolution_EP1_true->SetBinContent(iter_cent+1,ResEP1_true[iter_cent]);
-		Resolution_EP1_exp->SetBinContent(iter_cent+1,SubEvRes1[iter_cent]);
+		hResolution_EP1_true->SetBinContent(iter_cent+1,ResEP1_true[iter_cent]);
+		hResolution_EP1_reco->SetBinContent(iter_cent+1,SubEvRes1[iter_cent]);
 	}
 	if(analysis_choice == "selection")
 	{
@@ -839,19 +795,9 @@ void MpdGlobalPolarizationRECO::fillHistograms(MpdAnalysisEvent &event)
 					if(lamb->omega2 > omega_value[iter_sel]) 
 						hm0_full[iter_sel]->Fill(lamb->massh);
 				}	
-				for(int iter_cent = 0; iter_cent < NITER_CENT; iter_cent++)
-				{
-					if(Centrality_tpc >= centrality_max[iter_cent] || Centrality_tpc < centrality_min[iter_cent]) continue; 
-					hm0_before[iter_cent]->Fill(lamb->massh);
-					for(int iter_sel = 0; iter_sel < NITER_Selections; iter_sel++)
-					{	
-						if(lamb->omega2 > omega_value[iter_sel]) 
-							hm0[iter_cent][iter_sel]->Fill(lamb->massh);
-					}		
-				}
 			}else if(selection_choice == "chi")
 			{
-
+				//so far nothing, as we are using the tree and post-analysis to find selection values
 			}
 		}
 		
@@ -865,6 +811,10 @@ void MpdGlobalPolarizationRECO::fillHistograms(MpdAnalysisEvent &event)
 			{
 				if(lamb->omega2 > omega_value_full) 
 					hm0_Full->Fill(lamb->massh); 
+			}else if(selection_choice == "chi")
+			{
+				if((lamb->chi2s[0] > chi_pi_value_full) && (lamb->chi2s[1] > chi_p_value_full) && (lamb->chi2h < chi_V0_value_full) && (lamb->path > lambda_path_value_full) && (lamb->angle < lambda_angle_value_full)) 
+					hm0_Full->Fill(lamb->massh); 
 			}
 			for(int iter_cent = 0; iter_cent < NITER_CENT; iter_cent++)
 			{
@@ -874,24 +824,27 @@ void MpdGlobalPolarizationRECO::fillHistograms(MpdAnalysisEvent &event)
 				{							
 					Lpolar[iter_cent]->Fill(lamb->polarhy);
 					
-					double phi_diff_hist = phiEP_mc - lamb->phi_star;
-					double phi_diff_histRP = phiRP_mc - lamb->phi_star;
-					double phi_diff_MC = phiRP_mc - lamb->phi_star_MC;
+					double phi_diff_hist = phiEP - lamb->phi_star;
+					double phi_diff_histRP = phiRP - lamb->phi_star;
+					double phi_diff_MC = phiRP - lamb->phi_star_MC;
 					if (phi_diff_hist < 0) phi_diff_hist = phi_diff_hist + 2.*pi;
 					if (phi_diff_histRP < 0) phi_diff_histRP = phi_diff_histRP + 2.*pi;	
 					if (phi_diff_MC < 0) phi_diff_MC = phi_diff_MC + 2.*pi;	
 						
 					PstarEP_hist[iter_cent]->Fill(phi_diff_hist); 
 					PstarRP_hist[iter_cent]->Fill(phi_diff_histRP);
-					PstarRP_hist_MC[iter_cent]->Fill(phi_diff_MC);				
+					PstarRP_hist_MC[iter_cent]->Fill(phi_diff_MC);	
+
+					hPolvsPt[iter_cent]->Fill(lamb->pth,lamb->polarhy);	
+					hPolvsEta[iter_cent]->Fill(lamb->etah,lamb->polarhy);		
 				}
-				if (lamb->origs[0] == 1) //true lambda (primary??? how now???)
+				if (lamb->origs[0] == 1) //true lambda 
 				{	
 					Lpolar_prim[iter_cent]->Fill(lamb->polarhy);
 					
-					float phi_diff_hist = phiEP_mc - lamb->phi_star;
-					float phi_diff_histRP = phiRP_mc - lamb->phi_star;
-					float phi_diff_MC = phiRP_mc - lamb->phi_star_MC;
+					float phi_diff_hist = phiEP - lamb->phi_star;
+					float phi_diff_histRP = phiRP - lamb->phi_star;
+					float phi_diff_MC = phiRP - lamb->phi_star_MC;
 					if (phi_diff_hist < 0) phi_diff_hist = phi_diff_hist + 2.*pi;
 					if (phi_diff_histRP < 0) phi_diff_histRP = phi_diff_histRP + 2.*pi;	
 					if (phi_diff_MC < 0) phi_diff_MC = phi_diff_MC + 2.*pi;	
@@ -904,14 +857,14 @@ void MpdGlobalPolarizationRECO::fillHistograms(MpdAnalysisEvent &event)
 
 				if(selection_choice == "omega2")
 				{
-					if(lamb->omega2 <= omega_value[iter_cent]) continue; 
+					if(lamb->omega2 <= omega_value_full) continue; // now using only the value for full dataset (MinBias), not for each centrality bin
 				}else if(selection_choice == "chi")
 				{
-					if(lamb->chi2s[0] <= chi_pi_value[iter_cent]) continue; 
-					if(lamb->chi2s[1] <= chi_p_value[iter_cent]) continue; 
-					if(lamb->chi2h >= chi_pi_value[iter_cent]) continue; 
-					if(lamb->path <= lambda_path_value[iter_cent]) continue; 
-					if(lamb->angle >= lambda_angle_value[iter_cent]) continue;	
+					if(lamb->chi2s[0] <= chi_pi_value_full) continue; 
+					if(lamb->chi2s[1] <= chi_p_value_full) continue; 
+					if(lamb->chi2h >= chi_V0_value_full) continue; 
+					if(lamb->path <= lambda_path_value_full) continue; 
+					if(lamb->angle >= lambda_angle_value_full) continue;
 				}
 
 				hm0_after[iter_cent]->Fill(lamb->massh);
@@ -925,7 +878,7 @@ void MpdGlobalPolarizationRECO::fillHistograms(MpdAnalysisEvent &event)
 				Chi_v0[iter_cent]->Fill(lamb->chi2h);
 				Path_hist[iter_cent]->Fill(lamb->path);
 				Angle_hist[iter_cent]->Fill(lamb->angle);	
-				double phi_diff = phiEP_mc - lamb->phi_star;
+				double phi_diff = phiEP - lamb->phi_star;
 				if (phi_diff < 0) phi_diff = phi_diff + 2.*pi;
 										
 				for(int iter = 0; iter < NITER; iter++)
@@ -943,6 +896,7 @@ void MpdGlobalPolarizationRECO::fillHistograms(MpdAnalysisEvent &event)
 // Collect "good" pions, kaons and protons		
 void MpdGlobalPolarizationRECO::CollectParticles(vector<int> &vecPi, vector<int> &vecK, vector<int> &vecP)
 {
+	//no vecK here, need to add if we build some cascades
 	for (Int_t j = 0; j < mKalmanTracks->GetEntriesFast(); j++) 
 	{
 		MpdTpcKalmanTrack *tr = (MpdTpcKalmanTrack*) mKalmanTracks->UncheckedAt(j);
@@ -1442,7 +1396,8 @@ void MpdGlobalPolarizationRECO::BuildLambda(vector<int> &vecP, vector<int> &vecP
 					vector<double> lambPars(6);
 					lambPars[0] = disth;
 					lambPars[1] = angle;
-					for (Int_t jl = 0; jl < 2; ++jl) {
+					for (Int_t jl = 0; jl < 2; jl++) 
+					{
 						lambPars[jl+2] = chi2s[jl];
 						lambPars[jl+4] = dcas[jl];
 					}
@@ -1451,7 +1406,7 @@ void MpdGlobalPolarizationRECO::BuildLambda(vector<int> &vecP, vector<int> &vecP
 	       			fVecL2.push_back(pair<double,double>(chi2s[0],chi2s[1]));
 				}
 	
-				lambPart.SetMass(1.11568); // set true mass
+				lambPart.SetMass(massHyperon); // set true mass
 				yh = lambPart.Rapidity();
 				mpdg = -1;
 				// Check mother of lambda
@@ -1480,7 +1435,6 @@ void MpdGlobalPolarizationRECO::BuildLambda(vector<int> &vecP, vector<int> &vecP
 					polarhx = weight_pol*polar_changed.X();
 					polarhy = weight_pol*polar_changed.Y();
 					polarhz = weight_pol*polar_changed.Z();
-					Lpolar_full->Fill(polarhy);
 				}
 
 				FindPolarAngle (lambPart, vPart);
@@ -1505,13 +1459,16 @@ void MpdGlobalPolarizationRECO::BuildLambda(vector<int> &vecP, vector<int> &vecP
 				MpdTpcKalmanTrack piTr = mit1->second;
 				double z0tr = piTr.GetParam(1);
 				piTr.SetParam (1, z0tr - dz);
-				
+				//cout << "z0tr = " << z0tr << "; dz = " << dz << endl;
+				//cout << "piTr.GetTrackID(): " << piTr.GetTrackID() << endl;
+
+				/*
 				MpdMCTrack *mcTr1 = (MpdMCTrack*) mMCTracks->UncheckedAt(piTr.GetTrackID());
 				TVector3 mcmom2;
 				mcTr1->GetMomentum(mcmom2);
 				mcps[0] = mcmom2.Mag();
 				mcphis[0] = mcmom2.Phi();
-				mcthetas[0] = mcmom2.Theta();
+				mcthetas[0] = mcmom2.Theta();*/
 
 				origs[0] = -9;
 				MpdParticle *pion = new MpdParticle(piTr);
@@ -1616,8 +1573,8 @@ void MpdGlobalPolarizationRECO::FindPolarAngle(MpdParticle &lamb, vector<MpdPart
 	vPr.SetMagThetaPhi(mcps[1], mcthetas[1], mcphis[1]);
 	vPi.SetMagThetaPhi(mcps[0], mcthetas[0], mcphis[0]);
       
-	prLor.SetVectM(vPr, 0.938272);
-	piLor.SetVectM(vPi, 0.139570);
+	prLor.SetVectM(vPr, massDaughterBar);
+	piLor.SetVectM(vPi, massDaughterMes);
 
 	lambLor = prLor + piLor;
 
@@ -1633,12 +1590,12 @@ void MpdGlobalPolarizationRECO::FindPolarAngle(MpdParticle &lamb, vector<MpdPart
 
 	// Reco parameters
 	vLamb.SetMagThetaPhi(lamb.Momentum(), lamb.Theta(), lamb.Phi());
-	lambLor.SetVectM(vLamb, 1.11568);
+	lambLor.SetVectM(vLamb, massHyperon);
 
 	MpdParticle *prot = vPart[0];
 	vPr.SetMagThetaPhi(prot->Momentum(), prot->Theta(), prot->Phi());
 	
-	prLor.SetVectM(vPr, 0.938272);
+	prLor.SetVectM(vPr, massDaughterBar);
 	
 	TVector3 boostV;
 	boostV = lambLor.BoostVector();
