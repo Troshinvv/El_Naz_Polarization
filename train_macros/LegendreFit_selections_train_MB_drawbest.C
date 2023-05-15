@@ -53,8 +53,8 @@ void LegendreFit_selections_train_MB_drawbest(TString inFileDir = "Directory_Pat
 	gStyle->SetOptTitle(0);
 	
 	//starting values for variables for selection: - check!!!
-	double chi_pi_start = 6.6; // starting value for chi_pi (> this)
-	double chi_p_start = 3.6; // starting value for chi_p (> this)
+	double chi_pi_start = 8.2; // starting value for chi_pi (> this)
+	double chi_p_start = 5.2; // starting value for chi_p (> this)
 	double chi_V0_start = 5.6; // starting value for chi_V0 (< this)
 	double lambda_path_start = 1.6; // starting value for lambda_path (> this)
 	double lambda_angle_start = 0.06; // starting value for lambda_angle (< this)
@@ -153,10 +153,11 @@ void LegendreFit_selections_train_MB_drawbest(TString inFileDir = "Directory_Pat
 	c1->cd();	
 	hm0->SetMinimum(1.0E-20);
 	hm0->GetXaxis()->SetRangeUser(1.07,1.17);
-	hm0->Fit(int_fitting_fnc,"wq0","",1.086,1.18);
+	hm0->Draw();
+	hm0->Fit(Form("int_fitting_fnc_V%d_path%d_angle%d",max_value_iter_V0_final,max_value_iter_path_final,max_value_iter_angle_final),"wq0","",1.086,1.18);
 				
-	Float_t mass = fitting_fnc[iter_cent]->GetParameter(npar-7);
-	Float_t sigma = TMath::Abs(fitting_fnc[iter_cent]->GetParameter(npar-6));
+	Float_t mass = fitting_fnc->GetParameter(npar-7);
+	Float_t sigma = TMath::Abs(fitting_fnc->GetParameter(npar-6));
 			
 	Double_t xmin_cut = mass - nsig_bckg * sigma;
 	Double_t xmax_cut = mass + nsig_bckg * sigma;
@@ -177,7 +178,7 @@ void LegendreFit_selections_train_MB_drawbest(TString inFileDir = "Directory_Pat
 	}
 	hm0_bckg->SetError(errs);
 	hm0_bckg->SetLineColor(kMagenta);
-	hm0_bckg->Fit(int_backFcn,"q","same",1.086,1.17);
+	hm0_bckg->Fit(Form("backFcn_V%d_path%d_angle%d",max_value_iter_V0_final,max_value_iter_path_final,max_value_iter_angle_final),"q","same",1.086,1.17);
 				
 	signalFcn = new TF1(Form("signalFcn_cut1_V%d_path%d_angle%d",max_value_iter_V0_final,max_value_iter_path_final,max_value_iter_angle_final),gaussian,xmin,xmax,3);
 	signalFcn->SetLineColor(kBlue);
@@ -190,7 +191,7 @@ void LegendreFit_selections_train_MB_drawbest(TString inFileDir = "Directory_Pat
 	hm0_signal->SetMarkerStyle(2);
 	hm0_signal->SetMarkerSize(1);
 	signalFcn->SetParameters(hm0->GetMaximum(),1.1157,0.003);
-	hm0_signal->Fit(int_signalFcn,"q0","same",1.105,1.125);
+	hm0_signal->Fit(Form("signalFcn_cut1_V%d_path%d_angle%d",max_value_iter_V0_final,max_value_iter_path_final,max_value_iter_angle_final),"q0","same",1.105,1.125);
 				
 	mass = signalFcn->GetParameter(1);
 	sigma = signalFcn->GetParameter(2);
@@ -251,9 +252,9 @@ void LegendreFit_selections_train_MB_drawbest(TString inFileDir = "Directory_Pat
 	legend->AddEntry(line_backleft,"Cut-off (bckg)","l");
 	legend->Draw("same");
 		
-	TLatex *title_SSB = new TLatex(1.075,0.86*hm0->GetMaximum(), Form("#frac{S}{#sqrt{S+B}} = %.2f",ratio_SSB[iter_cent])); 
+	TLatex *title_SSB = new TLatex(1.075,0.86*hm0->GetMaximum(), Form("#frac{S}{#sqrt{S+B}} = %.2f",ratio_SSB)); 
 	title_SSB->Draw("same");
-	TLatex *title_efficiency = new TLatex(1.075,0.72*hm0->GetMaximum(), Form("eff. = %.2f",efficiency[iter_cent])); 
+	TLatex *title_efficiency = new TLatex(1.075,0.72*hm0->GetMaximum(), Form("eff. = %.2f",efficiency)); 
 	title_efficiency->Draw("same");
 	
 	cout << "File = " << fullpath << "; Highest SSB ratio = " << ratio_SSB << endl;

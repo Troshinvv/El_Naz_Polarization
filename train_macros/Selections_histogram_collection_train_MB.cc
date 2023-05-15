@@ -77,8 +77,8 @@ int main(int argc, char** argv)
 	int n_ev = 0; // number of events to analyze (default 0 - means all)
 	
 	//starting values for variables for selection: - check!!!
-	double chi_pi_start = 6.6; // starting value for chi_pi (> this)
-	double chi_p_start = 3.6; // starting value for chi_p (> this)
+	double chi_pi_start = 8.2; // starting value for chi_pi (> this)
+	double chi_p_start = 5.2; // starting value for chi_p (> this)
 	double chi_V0_start = 5.6; // starting value for chi_V0 (< this)
 	double lambda_path_start = 1.6; // starting value for lambda_path (> this)
 	double lambda_angle_start = 0.06; // starting value for lambda_angle (< this)
