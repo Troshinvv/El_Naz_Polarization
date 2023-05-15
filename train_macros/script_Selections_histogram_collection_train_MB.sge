@@ -1,0 +1,54 @@
+#$ -cwd 
+#$ -j y
+#$ -N Selections
+#$ -t 1-770
+#$ -l h=(ncx20[6-8]|ncx22[6-8]|ncx23[5-8])
+
+date
+echo "Node: ${HOSTNAME}"
+
+source /cvmfs/nica.jinr.ru/sw/os/login.sh
+module add mpddev
+export MPDROOT=/scratch2/nazarova/mpd
+source $MPDROOT/config/env.sh
+
+export MACRO_DIR=/scratch2/nazarova/macro/polarization-analysis-framework/macros
+export OUT=/scratch2/nazarova/output_train_selections/Chi
+
+echo $SGE_TASK_ID
+((SGE_TASK_ID--))
+echo $SGE_TASK_ID
+
+if [ -f "${OUT}/PHSD_selections_${SGE_TASK_ID}.root" ]; then
+  exit 0
+fi
+
+mkdir d_${JOB_ID}_${SGE_TASK_ID}
+cd d_${JOB_ID}_${SGE_TASK_ID} 
+cp ${MACRO_DIR}/Selections_histogram_collection_train_MB.cc Selections_histogram_collection_train_MB.cc
+cp ${MACRO_DIR}/Makefile Makefile
+cp ${MACRO_DIR}/MpdLambdaPol.cxx MpdLambdaPol.cxx
+cp ${MACRO_DIR}/MpdLambdaPol.h MpdLambdaPol.h
+
+export INFILE=/scratch2/nazarova/output_train_selections/Chi_Trees/Anal_bin${SGE_TASK_ID}.root
+
+export OUTFILEDIR=${OUT}
+export OUTFILE=PHSD_selections_${SGE_TASK_ID}.root
+
+echo ""
+echo "Start Analysis"
+date
+echo ""
+
+rootcling -v4 -f mydict.cxx -rmf libmydict.rootmap -rml libmydict.so MpdLambdaPol.h
+g++ -shared -o libmydict.so mydict.cxx `root-config --cflags --libs` -fPIC
+
+make Selections_histogram_collection_train_MB
+./Selections_histogram_collection_train_MB -NITER 10 -inname $INFILE -outnamedir $OUTFILEDIR -outname $OUTFILE
+
+cd ..
+rm -rf d_${JOB_ID}_${SGE_TASK_ID}
+
+echo "End"
+echo "---------------"
+date
