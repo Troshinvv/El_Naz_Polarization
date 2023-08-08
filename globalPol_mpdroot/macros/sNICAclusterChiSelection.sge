@@ -1,0 +1,53 @@
+#$ -cwd 
+#$ -j y
+#$ -N ChiSelection
+#$ -t 1-7700
+#$ -l h=(ncx20[6-8]|ncx22[6-8]|ncx23[5-8])
+
+date
+echo "Node: ${HOSTNAME}"
+
+# designate the path to macros and output 
+export MACRO_DIR=/scratch2/nazarova/macro/polarization-analysis-framework/macros
+export OUT=/scratch2/nazarova/selection/chi/collect_histos
+
+# Input file
+export INFILE=/scratch2/nazarova/selection/chi/Anal_bin${SGE_TASK_ID}.root
+export CONFIGFILE=pGlobalPolRECO.txt
+
+export OUTFILEDIR=${OUT}
+export OUTFILE=Chi_selections_${SGE_TASK_ID}.root
+
+((SGE_TASK_ID--))
+
+# exit if file exists
+if [ -f "${OUT}/Anal_bin${i}.root" ]; then
+  exit 0
+fi
+
+# loading MPDROOT framework
+source /cvmfs/nica.jinr.ru/sw/os/login.sh
+module add mpddev
+export MPDROOT=/scratch2/nazarova/mpd
+source $MPDROOT/config/env.sh
+
+# copying files to current node
+mkdir d_${JOB_ID}_${SGE_TASK_ID}
+cd d_${JOB_ID}_${SGE_TASK_ID} 
+cp ${MACRO_DIR}/mpdloadlibs.C mpdloadlibs.C
+cp ${MACRO_DIR}/Run_SelectHistos_ChiSelection.C Run_SelectHistos_ChiSelection.C
+cp ${MACRO_DIR}/pGlobalPolRECO.txt pGlobalPolRECO.txt
+
+echo ""
+echo "Start Analysis"
+date
+echo ""
+
+# starting the train
+root -b -q Run_SelectHistos_ChiSelection.C\(\"${INFILE}\",\"${CONFIGFILE}\",\"${OUTFILEDIR}\",\"${OUTFILE}\",10,0\)
+
+# cleaning up
+cd ..
+rm -rf d_${JOB_ID}_${SGE_TASK_ID}
+
+date

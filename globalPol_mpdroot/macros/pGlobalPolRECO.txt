@@ -1,0 +1,46 @@
+#-------Parameters used for analysis------
+# Event selection: 
+mZvtxCut 130 //  cut on vertex z coordinate
+
+# Track selection: 
+mNofHitsCut   10  // minimal number of hits to accept track
+
+# Event selection:
+NITER            20       // number of angular bins
+NITER_CENT        4       // number of centralty bins
+NITER_ETA         6       // number of eta bins
+NITER_PT          5       // number of pt bins
+cent_cut       70.0       // number of angular bins
+cent_cut_choice   0       // number of angular bins
+particle_choice   3122    // particle choice (pdg number of hyperon)
+nMix              5       // number of events to mix (e.g. 5 in Zinchenko version)
+
+# PID parameters:
+MCFile /eos/nica/mpd/sim/data/mc/urqmd-BiBi-09.2GeV-mb-eos0-500-0.dst.root // MC file with geometry
+sigM           3.0     // sigma for M (this changed from 4)
+sigE           3.0     // sigma for E (this changed from 4)
+energy         9.2     // energy
+coef           1.0     // coefficient
+generator      NSIG    // generator name
+tracking       CFHM    // type of tracking
+
+# Topology selection parameters for omega2 selection:
+NITER_Selections    30     // number of values (recommended - 30)
+omega_start         1.0    // starting value for omega2 parameter
+omega_step          0.1    // step value for omega2 parameter
+
+# Topology selection parameters for chi selection:
+chi_pi_start         7.6    // starting value for chi_pi (> this)
+chi_p_start          4.2    // starting value for chi_p (> this)
+chi_V0_start         5.6    // starting value for chi_V0 (< this)
+lambda_path_start    1.6    // starting value for lambda_path (> this)
+lambda_angle_start   0.06   // starting value for lambda_angle (< this)
+chi_pi_step          0.2    // step value for chi_pi
+chi_p_step           0.2    // step value for chi_p
+chi_V0_step          0.2    // step value for chi_V0
+lambda_path_step     0.2    // step value for lambda_path
+lambda_angle_step    0.02   // step value for lambda_angle
+
+# Analysis parameters:
+selections_values Omega2Selection_values_MB_3sigma.txt // File with topology selection values (omega2 selection)
+#selections_values ChiSelection_values_MB_3sigma.txt // File with topology selection values (chi selection)

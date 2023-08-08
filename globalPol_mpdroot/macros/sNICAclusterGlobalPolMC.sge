@@ -1,0 +1,70 @@
+#$ -cwd 
+#$ -j y
+#$ -N GlobalPolMC
+#$ -t 1-7700
+#$ -l h=(ncx20[6-8]|ncx22[6-8]|ncx23[5-8])
+
+date
+echo "Node: ${HOSTNAME}"
+
+# designate the path to macros and output 
+export MACRO_DIR=/scratch2/nazarova/mpd/physics/globalPolarization/macros
+export OUT=/scratch2/nazarova/output_train_reco/MC
+
+((SGE_TASK_ID--))
+
+# exit if file exists
+if [ -f "${OUT}/Anal_bin${SGE_TASK_ID}.root" ]; then
+  exit 0
+fi
+
+# loading MPDROOT framework
+source /cvmfs/nica.jinr.ru/sw/os/login.sh
+module add mpddev
+export MPDROOT=/scratch2/nazarova/mpd
+source $MPDROOT/config/env.sh
+
+# copying files to current node
+mkdir d_${JOB_ID}_${SGE_TASK_ID}
+cd d_${JOB_ID}_${SGE_TASK_ID} 
+cp ${MACRO_DIR}/mpdloadlibs.C mpdloadlibs.C
+cp ${MACRO_DIR}/RunAnalysesMC.C RunAnalysesMC.C
+cp ${MACRO_DIR}/nTr_Centr_Req30-PHSD.root nTr_Centr_Req30-PHSD.root
+cp ${MACRO_DIR}/pCentr.txt pCentr.txt
+cp ${MACRO_DIR}/pEP.txt pEP.txt
+cp ${MACRO_DIR}/pGlobalPolMC.txt pGlobalPolMC.txt
+cp ${MACRO_DIR}/TrackRecEff.root TrackRecEff.root
+
+# constructing list of input files and save it in list.txt
+DIRECTORY=/eos/nica/mpd/sim/data/exp/dst-BiBi-09.2GeV-mp07-22-500ev-req30/BiBi/09.2GeV-mb/PHSD/dst-BiBi-09.2GeV-mp07-22-500ev-req30
+
+echo "" > list.txt
+printf -v SGE_TASK_ID_COUNTER "%04d" $SGE_TASK_ID
+
+export INFILE0=${DIRECTORY}/phsd-BiBi-09.2GeV-mb-eos0-2k-${SGE_TASK_ID_COUNTER}-0.reco.root
+export INFILE1=${DIRECTORY}/phsd-BiBi-09.2GeV-mb-eos0-2k-${SGE_TASK_ID_COUNTER}-1.reco.root
+export INFILE2=${DIRECTORY}/phsd-BiBi-09.2GeV-mb-eos0-2k-${SGE_TASK_ID_COUNTER}-2.reco.root
+export INFILE3=${DIRECTORY}/phsd-BiBi-09.2GeV-mb-eos0-2k-${SGE_TASK_ID_COUNTER}-3.reco.root
+
+echo $INFILE0 >> list.txt
+echo $INFILE1 >> list.txt
+echo $INFILE2 >> list.txt
+echo $INFILE3 >> list.txt
+
+export OUTFILE=${OUT}/Anal_bin${SGE_TASK_ID}
+
+echo ""
+echo "Start Analysis"
+date
+echo ""
+
+# starting the train
+root -b -q RunAnalysesMC.C\(\"${OUTFILE}\"\)
+
+# cleaning up
+cd ..
+rm -rf d_${JOB_ID}_${SGE_TASK_ID}
+
+echo "End"
+echo "---------------"
+date
