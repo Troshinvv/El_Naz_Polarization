@@ -124,6 +124,7 @@ private:
    TProfile **hPv1Psi_Prim_Neg;
    TProfile **hPv1Psi_Prim_cut_Neg;
    TProfile **hP_invmass_Psi;
+   TProfile **hv1_invmass_Psi;
    
 
    // general parameters:
