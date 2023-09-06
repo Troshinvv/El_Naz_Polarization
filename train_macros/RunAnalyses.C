@@ -3,7 +3,7 @@ void RunAnalyses(TString output, TString analysis_choice, TString selection_choi
    gROOT->LoadMacro("mpdloadlibs.C");
    gROOT->ProcessLine("mpdloadlibs()");
 
-   MpdAnalysisManager man("ManagerAnal",10) ;
+   MpdAnalysisManager man("ManagerAnal",-1) ;
    man.InputFileList("list.txt") ;
    man.ReadBranches("*") ; 
    

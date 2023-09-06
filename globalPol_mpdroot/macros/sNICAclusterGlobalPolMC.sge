@@ -1,15 +1,17 @@
+#$ -wd /scratch2/troshin/Polarization/TMP
 #$ -cwd 
 #$ -j y
 #$ -N GlobalPolMC
 #$ -t 1-7700
 #$ -l h=(ncx20[6-8]|ncx22[6-8]|ncx23[5-8])
-
+#$ -o /scratch2/troshin/Polarization/TMP
+#$ -e /scratch2/troshin/Polarization/TMP
 date
 echo "Node: ${HOSTNAME}"
 
 # designate the path to macros and output 
-export MACRO_DIR=/scratch2/nazarova/mpd/physics/globalPolarization/macros
-export OUT=/scratch2/nazarova/output_train_reco/MC
+export MACRO_DIR=/scratch2/troshin/El_Naz_Polarization/globalPol_mpdroot/macros
+export OUT=/scratch2/troshin/Polarization/OUT/MC/Pol_flow
 
 ((SGE_TASK_ID--))
 
@@ -21,9 +23,9 @@ fi
 # loading MPDROOT framework
 source /cvmfs/nica.jinr.ru/sw/os/login.sh
 module add mpddev
-export MPDROOT=/scratch2/nazarova/mpd
+export MPDROOT=/scratch2/troshin/mpd
 source $MPDROOT/config/env.sh
-
+cd ${OUT}
 # copying files to current node
 mkdir d_${JOB_ID}_${SGE_TASK_ID}
 cd d_${JOB_ID}_${SGE_TASK_ID} 

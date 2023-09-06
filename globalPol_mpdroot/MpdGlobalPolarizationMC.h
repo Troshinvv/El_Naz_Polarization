@@ -9,6 +9,7 @@
 #include "TH1.h"
 #include "TH2.h"
 #include "TH3.h"
+#include "TProfile.h"
 
 #include "MpdEvent.h"
 #include "MpdPid.h"
@@ -62,6 +63,68 @@ private:
                             // event plane)
    TH1D **hDeltaPhiEP_Prim; // Angular distributions (delta phi* of proton) for primary hyperons from MCTracks (w.r.t.
                             // event plane)
+   
+   TH1D ****hPolarY_Full_pt_eta_bin;
+   TH1D ****hPolarY_Prim_pt_eta_bin; 
+   
+   TH1D ****hPolarY2_Prim_pt_eta_bin;
+  
+
+  
+   TH1D **hinvmass;
+   TH1D **hpT_Full;
+   TH1D **hpT_Prim;
+   TH1D **heta_Full;
+   TH1D **heta_Prim;
+   TProfile ***hv1EtaPhi_Full;
+   TProfile ***hv1EtaPhi_Prim;
+   TProfile ***hv1EtaPsi_Full;
+   TProfile ***hv1EtaPsi_Prim;
+   TProfile ***hv1pTPhi_Full;
+   TProfile ***hv1pTPhi_Prim;
+   TProfile ***hv1pTPsi_Full;
+   TProfile ***hv1pTPsi_Prim;
+
+
+   TProfile ***hPv1pTPsi_Prim;
+   TProfile ***hPv1EtaPsi_Prim;
+
+   TProfile ***hv12pTPsi_Prim;
+   TProfile ***hv12EtaPsi_Prim;
+ 
+   TProfile *hv1CentPhi_Full;
+   TProfile *hv1CentPhi_Prim;
+   TProfile *hv1CentPsi_Full;
+   TProfile *hv1CentPsi_Prim;
+
+   TProfile ***hNv1EtaPsi_Prim;
+   TProfile ***hNPEtaPsi_Prim;
+   TProfile ***hPEtaPsi_Prim;
+   TProfile ***hP2EtaPsi_Prim;
+   TProfile *hN;
+   TProfile *hN2;
+    TProfile ***hNv1pTPsi_Prim;
+   TProfile ***hNPpTPsi_Prim;
+   TProfile ***hPpTPsi_Prim;
+   TProfile ***hP2pTPsi_Prim;
+
+   TProfile ***hv14pTPsi_Prim;
+   TProfile ***hv14EtaPsi_Prim;
+   TProfile ***hP4EtaPsi_Prim;
+   TProfile ***hP4pTPsi_Prim;
+
+
+   TProfile ***hPv12pTPsi_Prim;
+   TProfile ***hPv12EtaPsi_Prim;
+   TProfile ***hP2v1pTPsi_Prim;
+   TProfile ***hP2v1EtaPsi_Prim;
+
+   TProfile **hPv1Psi_Prim;
+   TProfile **hPv1Psi_Prim_cut;
+   TProfile **hPv1Psi_Prim_Neg;
+   TProfile **hPv1Psi_Prim_cut_Neg;
+   TProfile **hP_invmass_Psi;
+   
 
    // general parameters:
    float pi         = TMath::Pi();
@@ -79,6 +142,8 @@ private:
    int    pdgCodeDaughter; // pdg of daughter particle (proton in case of Lambda, antiproton in case of antiLambda)
    double massHyperon;     // mass of analyzed hyperon
    double massDaughter;    // mass of daughter particle
+   
+   double phiHyperon;     // azimuthal angle of hyperon
 
    double phiRP;          // RP angle
    double phiEP;          // 1st-order EP angle (from FHCal)

@@ -132,6 +132,18 @@ private:
    TH1D *hPtProtT             = nullptr;
    TH1D *hPtProtF             = nullptr;
 
+   TH1D *hHypRecopT_Prim = nullptr;
+   TH1D *hHypRecopT_Full = nullptr;
+   TH1D *hHypRecoEta_Prim = nullptr;
+   TH1D *hHypRecoEta_Full = nullptr;
+   
+   TH1D *hHypMCpT_Prim = nullptr;
+   TH1D *hHypMCEta_Prim = nullptr;
+   
+   TH2F *hHypRecopTEta_Full        = nullptr;
+   TH2F *hHypRecopTEta_Prim        = nullptr;
+   TH2F *hHypMCpTEta        = nullptr;
+
    // Tree for chi selection
    TTree *results_tree;
 
@@ -181,6 +193,17 @@ private:
    TH1D ***hm0_etabin_mixed; // Omega2/Chi analysis: Invariant mass histograms in bins of delta phi* of proton for each
                              // eta bin for centrality interval 20-50%, after selection (mixed background)
 
+   TH1D ***hm0_pt_eta_bin;
+   TH1D ***hPolarY_Full_pt_eta_bin;
+   TH1D ***hPolarY_Prim_pt_eta_bin;
+   TH1D ***hDeltaPhiEP_Full_pt_eta_bin;
+   TH1D ***hDeltaPhiRP_Full_pt_eta_bin;
+   TH1D ***hDeltaPhiEP_Prim_pt_eta_bin;
+   TH1D ***hDeltaPhiRP_Prim_pt_eta_bin;
+   TProfile ***hv1EP_Full_pt_eta_bin;
+   TProfile ***hv1RP_Full_pt_eta_bin;
+   TProfile ***hv1EP_Prim_pt_eta_bin;
+   TProfile ***hv1RP_Prim_pt_eta_bin;
    // general parameters:
    double pi         = TMath::Pi();
    int    pdgCodePr  = 2212;  // pdg of proton

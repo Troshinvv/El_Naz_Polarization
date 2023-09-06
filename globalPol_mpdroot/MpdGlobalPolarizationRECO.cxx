@@ -160,6 +160,18 @@ void MpdGlobalPolarizationRECO::UserInit()
    hPtProtT  = new TH1D("hPtProtT", "True Proton Pt", 20, 0, 5);
    hPtProtF  = new TH1D("hPtProtF", "False Proton Pt", 20, 0, 5);
 
+   hHypRecopT_Prim = new TH1D("hHypRecopT_Prim","Reco pT Primary", 300,0,3);
+   hHypRecopT_Full = new TH1D("hHypRecopT_Full","Reco pT Full", 300,0,3);
+   hHypRecoEta_Prim = new TH1D("hHypRecoEta_Prim","Reco Rapidity Primary", 300,-1.5,1.5);
+   hHypRecoEta_Full = new TH1D("hHypRecoEta_Full","Reco Rapidity Full", 300,-1.5,1.5);
+   hHypMCpT_Prim = new TH1D("hHypMCpT_Prim","MC pT Primary", 300,0,3);
+   hHypMCEta_Prim = new TH1D("hHypMCEta_Prim","MC Rapidity Primary", 300,-1.5,1.5);
+
+  
+hHypRecopTEta_Full =new TH2F("hHypRecopTEta_Full","Reco pT vs Eta Full",600,-3,3,400,0,4); 
+hHypRecopTEta_Prim =new TH2F("hHypRecopTEta_Prim","Reco pT vs Eta Prim",600,-3,3,400,0,4);
+hHypMCpTEta =new TH2F("hHypMCpTEta","MC pT vs Eta",600,-3,3,400,0,4);
+
    fvvvL   = &vLambdas;
    fvvvLpt = &fvLambMpdgPtEtaY;
 
@@ -185,6 +197,18 @@ void MpdGlobalPolarizationRECO::UserInit()
       fOutputList->Add(hLambFlag);
       fOutputList->Add(hXiFlag);
 
+      fOutputList->Add(hHypRecopT_Prim);
+      fOutputList->Add(hHypRecopT_Full);
+      fOutputList->Add(hHypRecoEta_Prim);
+      fOutputList->Add(hHypRecoEta_Full);
+      fOutputList->Add(hHypMCpT_Prim);
+       fOutputList->Add(hHypMCEta_Prim);
+
+
+      fOutputList->Add(hHypRecopTEta_Full);
+      fOutputList->Add(hHypRecopTEta_Prim);
+      fOutputList->Add(hHypMCpTEta);
+
       hm0_Full = new TH1D("hm0_Full", "Full (MB) Invariant Mass of Hyperon", 100, 1.07, 1.17);
       fOutputList->Add(hm0_Full);
       hm0_before_full =
@@ -209,6 +233,18 @@ void MpdGlobalPolarizationRECO::UserInit()
       hm0_etabin       = new TH1D **[NITER_ETA];
       hm0_ptbin_mixed  = new TH1D **[NITER_PT];
       hm0_etabin_mixed = new TH1D **[NITER_ETA];
+
+      hm0_pt_eta_bin = new TH1D **[NITER_PT];
+      hPolarY_Full_pt_eta_bin = new TH1D **[NITER_PT];
+      hPolarY_Prim_pt_eta_bin = new TH1D **[NITER_PT];
+      hDeltaPhiEP_Full_pt_eta_bin = new TH1D **[NITER_PT];
+   hDeltaPhiRP_Full_pt_eta_bin = new TH1D **[NITER_PT];
+   hDeltaPhiEP_Prim_pt_eta_bin = new TH1D **[NITER_PT];
+   hDeltaPhiRP_Prim_pt_eta_bin = new TH1D **[NITER_PT];
+   hv1EP_Full_pt_eta_bin = new TProfile **[NITER_PT];
+   hv1RP_Full_pt_eta_bin = new TProfile **[NITER_PT];
+   hv1EP_Prim_pt_eta_bin = new TProfile **[NITER_PT];
+   hv1RP_Prim_pt_eta_bin = new TProfile **[NITER_PT];
 
       hPolvsPt  = new TProfile *[NITER_CENT];
       hPolvsEta = new TProfile *[NITER_CENT];
@@ -343,6 +379,60 @@ void MpdGlobalPolarizationRECO::UserInit()
             fOutputList->Add(hm0_etabin_mixed[iter_eta][iter]);
          }
       }
+      cout<< "my cycle"<<endl;
+      for (int iter_pt = 0; iter_pt < NITER_PT; iter_pt++) {
+           hm0_pt_eta_bin[iter_pt] = new TH1D *[NITER_ETA];
+           hPolarY_Full_pt_eta_bin[iter_pt] = new TH1D *[NITER_ETA];
+           hPolarY_Prim_pt_eta_bin[iter_pt] = new TH1D *[NITER_ETA];
+           hDeltaPhiEP_Full_pt_eta_bin[iter_pt] = new TH1D *[NITER_ETA];
+           hDeltaPhiRP_Full_pt_eta_bin[iter_pt] = new TH1D *[NITER_ETA];
+   hDeltaPhiEP_Prim_pt_eta_bin[iter_pt] = new TH1D *[NITER_ETA];
+   hDeltaPhiRP_Prim_pt_eta_bin[iter_pt] = new TH1D *[NITER_ETA];
+   hv1EP_Full_pt_eta_bin[iter_pt] = new TProfile *[NITER_ETA];
+   hv1RP_Full_pt_eta_bin[iter_pt] = new TProfile *[NITER_ETA];
+   hv1EP_Prim_pt_eta_bin[iter_pt] = new TProfile *[NITER_ETA];
+   hv1RP_Prim_pt_eta_bin[iter_pt] = new TProfile *[NITER_ETA];
+         for (int iter_eta = 0; iter_eta < NITER_ETA; iter_eta++) {
+            hm0_pt_eta_bin[iter_pt][iter_eta] = new TH1D (Form("hm0_pt_eta_bin%d_%d", iter_pt, iter_eta),
+                                                  Form("hm0_pt_eta_bin%d_%d", iter_pt, iter_eta), 100, 1.07, 1.17);
+            fOutputList->Add(hm0_pt_eta_bin[iter_pt][iter_eta]);
+            hPolarY_Full_pt_eta_bin[iter_pt][iter_eta] = new TH1D (Form("hPolarY_Full_pt_eta_bin%d_%d", iter_pt, iter_eta),
+                                                  Form("hPolarY_Full_pt_eta_bin%d_%d", iter_pt, iter_eta), 100, -1., 1.);
+            fOutputList->Add(hPolarY_Full_pt_eta_bin[iter_pt][iter_eta]);
+            hPolarY_Prim_pt_eta_bin[iter_pt][iter_eta] = new TH1D (Form("hPolarY_Prim_pt_eta_bin%d_%d", iter_pt, iter_eta),
+                                                  Form("hPolarY_Prim_pt_eta_bin%d_%d", iter_pt, iter_eta), 100, -1., 1.);
+            fOutputList->Add(hPolarY_Prim_pt_eta_bin[iter_pt][iter_eta]);
+
+
+            hDeltaPhiEP_Full_pt_eta_bin[iter_pt][iter_eta] = new TH1D (Form("hDeltaPhiEP_Full_pt_eta_bin%d_%d", iter_pt, iter_eta),
+                                                  Form("hDeltaPhiEP_Full_pt_eta_bin%d_%d", iter_pt, iter_eta), NITER, 0., 2. * pi);
+            fOutputList->Add(hDeltaPhiEP_Full_pt_eta_bin[iter_pt][iter_eta]);
+            hDeltaPhiRP_Full_pt_eta_bin[iter_pt][iter_eta] = new TH1D (Form("hDeltaPhiRP_Full_pt_eta_bin%d_%d", iter_pt, iter_eta),
+                                                  Form("hDeltaPhiRP_Full_pt_eta_bin%d_%d", iter_pt, iter_eta), NITER, 0., 2. * pi);
+            fOutputList->Add(hDeltaPhiRP_Full_pt_eta_bin[iter_pt][iter_eta]);
+            hDeltaPhiRP_Prim_pt_eta_bin[iter_pt][iter_eta] = new TH1D (Form("hDeltaPhiRP_Prim_pt_eta_bin%d_%d", iter_pt, iter_eta),
+                                                  Form("hDeltaPhiRP_Prim_pt_eta_bin%d_%d", iter_pt, iter_eta), NITER, 0., 2. * pi);
+            fOutputList->Add(hDeltaPhiRP_Prim_pt_eta_bin[iter_pt][iter_eta]);
+            hDeltaPhiEP_Prim_pt_eta_bin[iter_pt][iter_eta] = new TH1D (Form("hDeltaPhiEP_Prim_pt_eta_bin%d_%d", iter_pt, iter_eta),
+                                                  Form("hDeltaPhiEP_Prim_pt_eta_bin%d_%d", iter_pt, iter_eta), NITER, 0., 2. * pi);
+            fOutputList->Add(hDeltaPhiEP_Prim_pt_eta_bin[iter_pt][iter_eta]);
+
+
+            hv1EP_Prim_pt_eta_bin[iter_pt][iter_eta] = new TProfile (Form("hv1EP_Prim_pt_eta_bin%d_%d", iter_pt, iter_eta),
+                                                  Form("hv1EP_Prim_pt_eta_bin%d_%d", iter_pt, iter_eta), 100, 1.07, 1.17);
+            fOutputList->Add(hv1EP_Prim_pt_eta_bin[iter_pt][iter_eta]);
+            hv1RP_Prim_pt_eta_bin[iter_pt][iter_eta] = new TProfile (Form("hv1RP_Prim_pt_eta_bin%d_%d", iter_pt, iter_eta),
+                                                  Form("hv1RP_Prim_pt_eta_bin%d_%d", iter_pt, iter_eta), 100, 1.07, 1.17);
+            fOutputList->Add(hv1RP_Prim_pt_eta_bin[iter_pt][iter_eta]);
+            hv1EP_Full_pt_eta_bin[iter_pt][iter_eta] = new TProfile (Form("hv1EP_Full_pt_eta_bin%d_%d", iter_pt, iter_eta),
+                                                  Form("hv1EP_Full_pt_eta_bin%d_%d", iter_pt, iter_eta), 100, 1.07, 1.17);
+            fOutputList->Add(hv1EP_Full_pt_eta_bin[iter_pt][iter_eta]);
+            hv1RP_Full_pt_eta_bin[iter_pt][iter_eta] = new TProfile (Form("hv1RP_Full_pt_eta_bin%d_%d", iter_pt, iter_eta),
+                                                  Form("hv1RP_Full_pt_eta_bin%d_%d", iter_pt, iter_eta), 100, 1.07, 1.17);
+            fOutputList->Add(hv1RP_Full_pt_eta_bin[iter_pt][iter_eta]);
+         } 
+      }
+cout<< "my cycle ends here"<<endl;
 
    } else if (analysis_choice == "selection") {
       if (selection_choice == "omega2") {
@@ -437,7 +527,7 @@ void MpdGlobalPolarizationRECO::ProcessEvent(MpdAnalysisEvent &event)
       if (TMath::Abs(fLays[id]) < -41 ||
           TMath::Abs(etaRec) > 13) // here's a placeholder for possible cuts on lays and eta
          tr->SetChi2(-9.);
-      if (tr->GetNofHits() < mNofHitsCut) tr->SetChi2(-9.);
+      if (tr->GetNofHits() < mNofHitsCut && abs(tr->Momentum3().Eta())>1.5) tr->SetChi2(-9.);
    }
 
    // Collect "good" pions and protons
@@ -602,6 +692,13 @@ void MpdGlobalPolarizationRECO::ParticleMCProperties(MpdAnalysisEvent &event)
             fvLambMpdgPtEtaY.push_back(make_tuple(mpdg, pt, eta, mcTr->GetRapidity()));
          }
          nLamb_MC++;
+         if(mcTr->GetMotherId() < 0){
+         hHypMCpTEta->Fill(mcTr->GetRapidity(),mom.Pt());
+         if(TMath::Abs(mcTr->GetRapidity())<1. )
+         hHypMCpT_Prim->Fill(mom.Pt());
+         if(mom.Pt()<3 && mom.Pt()>0.5)
+         hHypMCEta_Prim->Fill(mcTr->GetRapidity());
+}
       }
    }
 }
@@ -798,7 +895,47 @@ void MpdGlobalPolarizationRECO::fillHistograms(MpdAnalysisEvent &event)
          if (lamb->origs[0] > -8) {
             hm0_before_full->Fill(lamb->massh);
             if (selection_choice == "omega2") {
-               if (lamb->omega2 > omega_value_full) hm0_Full->Fill(lamb->massh);
+               if (lamb->omega2 > omega_value_full){ hm0_Full->Fill(lamb->massh); 
+if(lamb->origs[0] ==1){
+if(TMath::Abs(lamb->etah)<1.)
+hHypRecopT_Prim->Fill(lamb->pth);
+if(lamb->pth>0.5 && lamb->pth<3)
+hHypRecoEta_Prim->Fill(lamb->etah);
+hHypRecopTEta_Prim->Fill(lamb->etah,lamb->pth);}
+if(lamb->origs[0]>0){
+hHypRecopTEta_Full->Fill(lamb->etah,lamb->pth);
+if(TMath::Abs(lamb->etah)<1.)
+hHypRecopT_Full->Fill(lamb->pth);
+if(lamb->pth>0.5 && lamb->pth<3)
+hHypRecoEta_Full->Fill(lamb->etah);}
+           /* if (Centrality_tpc >= centrality_max[2] || Centrality_tpc < centrality_min[2]) continue;
+            for (int iter_pt = 0; iter_pt < NITER_PT; iter_pt++) {
+               for (int iter_eta = 0; iter_eta < NITER_ETA; iter_eta++) {
+                  if (lamb->etah >= eta_max[iter_eta] || lamb->etah < eta_min[iter_eta]) continue;
+                  if (lamb->pth >= pt_max[iter_pt] || lamb->pth < pt_min[iter_pt]) continue;
+                   double phi_diff_hist   = phiEP - lamb->phi_star;
+               double phi_diff_histRP = phiRP - lamb->phi_star;
+               if (phi_diff_hist < 0) phi_diff_hist = phi_diff_hist + 2. * pi;
+               if (phi_diff_histRP < 0) phi_diff_histRP = phi_diff_histRP + 2. * pi;
+                  
+                   hm0_pt_eta_bin[iter_pt][iter_eta]->Fill(lamb->massh);
+                   hPolarY_Full_pt_eta_bin[iter_pt][iter_eta]->Fill(lamb->polarhy);
+                   hDeltaPhiEP_Full_pt_eta_bin[iter_pt][iter_eta]->Fill(phi_diff_hist);
+                   hDeltaPhiRP_Full_pt_eta_bin[iter_pt][iter_eta]->Fill(phi_diff_histRP);
+                   hv1EP_Full_pt_eta_bin[iter_pt][iter_eta]->Fill(lamb->massh,TMath::Cos(phi_Lam - phiEP));
+                   hv1RP_Full_pt_eta_bin[iter_pt][iter_eta]->Fill(lamb->massh,TMath::Cos(phi_Lam - phiRP));
+                   if(lamb->origs[0] == 1) // true lambda
+                   {hPolarY_Prim_pt_eta_bin[iter_pt][iter_eta]->Fill(lamb->polarhy);
+                   hDeltaPhiEP_Prim_pt_eta_bin[iter_pt][iter_eta]->Fill(phi_diff_hist);
+                   hDeltaPhiRP_Prim_pt_eta_bin[iter_pt][iter_eta]->Fill(phi_diff_histRP);
+                   hv1EP_Prim_pt_eta_bin[iter_pt][iter_eta]->Fill(lamb->massh,TMath::Cos(phi_Lam - phiEP));
+                   hv1RP_Prim_pt_eta_bin[iter_pt][iter_eta]->Fill(lamb->massh,TMath::Cos(phi_Lam - phiRP));}
+                  }
+                }*/
+               
+}            
+
+
             } else if (selection_choice == "chi") {
                if ((lamb->chi2s[0] > chi_pi_value_full) && (lamb->chi2s[1] > chi_p_value_full) &&
                    (lamb->chi2h < chi_V0_value_full) && (lamb->path > lambda_path_value_full) &&

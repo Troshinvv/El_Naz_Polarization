@@ -13,11 +13,11 @@ NITER            20       // number of angular bins
 NITER_CENT        4       // number of centralty bins
 cent_cut       70.0       // number of angular bins
 cent_cut_choice   0       // number of angular bins
-particle_choice   Lambda  // particle choice (Lambda or ALambda)
-nMix              0       // number of events to mix (e.g. 5 in Zinchenko version)
+particle_choice   3122  // particle choice (Lambda or ALambda)
+nMix              5       // number of events to mix (e.g. 5 in Zinchenko version)
 
 # PID parameters:
-MCFile /home/elizaveta/mytest/urqmd-BiBi-09.2GeV-mb-eos0-500-0.dst.root // MC file with geometry
+MCFile /eos/nica/mpd/sim/data/mc/urqmd-BiBi-09.2GeV-mb-eos0-500-0.dst.root // MC file with geometry
 sigM           3.0     // sigma for M (this changed from 4)
 sigE           3.0     // sigma for E (this changed from 4)
 energy         9.2     // energy
@@ -26,8 +26,8 @@ generator      NSIG    // generator name
 tracking       CFHM    // type of tracking
 
 # Topology selection parameters:
-NITER_Selections    30     // number of values (recommended - 30 for omega selection, 10 for dca/chi selection)
-omega_start         1.4    // starting value for omega_2 parameter
+NITER_Selections    10     // number of values (recommended - 30 for omega selection, 10 for dca/chi selection)
+omega_start         1.0    // starting value for omega_2 parameter
 omega_step          0.1    // step value for omega_2 parameter
 chi_pi_start        2.0    // starting value for chi_pi (> this)
 chi_p_start         2.0    // starting value for chi_p (> this)
