@@ -72,6 +72,8 @@ private:
 
   
    TH1D **hinvmass;
+   TH1D **hsinvmass;
+   TH1D **hbinvmass;
    TH1D **hpT_Full;
    TH1D **hpT_Prim;
    TH1D **heta_Full;
@@ -124,7 +126,19 @@ private:
    TProfile **hPv1Psi_Prim_Neg;
    TProfile **hPv1Psi_Prim_cut_Neg;
    TProfile **hP_invmass_Psi;
-   TProfile **hv1_invmass_Psi;
+   TProfile **hPs_invmass_Psi;
+   TProfile **hPb_invmass_Psi;
+   TProfile ***hv1_invmass_Psi;
+   TProfile ***hv1s_invmass_Psi;
+   TProfile ***hv1b_invmass_Psi;
+   TProfile ***hv1_2_invmass_Psi;
+   TProfile ***hv1s_2_invmass_Psi;
+   TProfile ***hv1b_2_invmass_Psi;
+
+   TProfile ***hv1s_inv_pt_Psi;
+   TProfile ***hv1b_inv_pt_Psi;
+   TProfile ***hv1s_inv_eta_Psi;
+   TProfile ***hv1b_inv_eta_Psi;
    
 
    // general parameters:

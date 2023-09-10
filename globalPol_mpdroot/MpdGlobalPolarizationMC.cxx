@@ -94,6 +94,8 @@ void MpdGlobalPolarizationMC::UserInit()
 
 
    hinvmass = new TH1D *[NITER_CENT];
+   hsinvmass = new TH1D *[NITER_CENT];
+   hbinvmass = new TH1D *[NITER_CENT];
    hpT_Full = new TH1D *[NITER_CENT];
    hpT_Prim = new TH1D *[NITER_CENT];
    heta_Full = new TH1D *[NITER_CENT];
@@ -139,7 +141,19 @@ void MpdGlobalPolarizationMC::UserInit()
    hPv1Psi_Prim_cut_Neg = new TProfile *[NITER_CENT];
 
    hP_invmass_Psi = new TProfile *[NITER_CENT];
-   hv1_invmass_Psi = new TProfile *[NITER_CENT];
+   hPs_invmass_Psi = new TProfile *[NITER_CENT];
+   hPb_invmass_Psi = new TProfile *[NITER_CENT];
+   hv1_invmass_Psi = new TProfile **[NITER_CENT];
+   hv1s_invmass_Psi = new TProfile **[NITER_CENT];
+   hv1b_invmass_Psi = new TProfile **[NITER_CENT];
+   hv1_2_invmass_Psi = new TProfile **[NITER_CENT];
+   hv1s_2_invmass_Psi = new TProfile **[NITER_CENT];
+   hv1b_2_invmass_Psi = new TProfile **[NITER_CENT];
+
+   hv1s_inv_eta_Psi = new TProfile **[NITER_CENT];
+   hv1b_inv_eta_Psi = new TProfile **[NITER_CENT];
+   hv1s_inv_pt_Psi = new TProfile **[NITER_CENT];
+   hv1b_inv_pt_Psi = new TProfile **[NITER_CENT];
    const double BinEdges[] = {0.,10.,20.,50.,100.};
    hN = new TProfile("hN","hN;centrality;N",4,BinEdges);
    hN2 = new TProfile("hN2","hN2;centrality;N2",4,BinEdges);
@@ -166,10 +180,13 @@ void MpdGlobalPolarizationMC::UserInit()
    SubEvRes1   = new double[NITER_CENT];
 
    for (int iter_cent = 0; iter_cent < NITER_CENT; iter_cent++) {
-      hP_invmass_Psi[iter_cent] = new TProfile(Form("hP_invmass_Psi_cent%d",iter_cent),Form("hP_invmass_Psi_cent%d;inv_mass, GeV/c;sin(phiRP-phiP)",iter_cent),100,1.07,1.17);
+      hP_invmass_Psi[iter_cent] = new TProfile(Form("hP_invmass_Psi_cent%d",iter_cent),Form("hP_invmass_Psi_cent%d;inv_mass, GeV/c;sin(phiRP-phiP)",iter_cent),10,1.07,1.17);
       fOutputList->Add(hP_invmass_Psi[iter_cent]);
-      hv1_invmass_Psi[iter_cent] = new TProfile(Form("hv1_invmass_Psi_cent%d",iter_cent),Form("hv1_invmass_Psi_cent%d;inv_mass, GeV/c;v1",iter_cent),100,1.07,1.17);
-      fOutputList->Add(hv1_invmass_Psi[iter_cent]);
+      hPs_invmass_Psi[iter_cent] = new TProfile(Form("hPs_invmass_Psi_cent%d",iter_cent),Form("hPs_invmass_Psi_cent%d;inv_mass, GeV/c;sin(phiRP-phiP)",iter_cent),10,1.07,1.17);
+      fOutputList->Add(hPs_invmass_Psi[iter_cent]);
+      hPb_invmass_Psi[iter_cent] = new TProfile(Form("hPb_invmass_Psi_cent%d",iter_cent),Form("hPb_invmass_Psi_cent%d;inv_mass, GeV/c;sin(phiRP-phiP)",iter_cent),10,1.07,1.17);
+      fOutputList->Add(hPb_invmass_Psi[iter_cent]);
+      
 
       hPv1Psi_Prim[iter_cent] = new TProfile(Form("hPv1Psi_Prim_cent%d",iter_cent),Form("hPv1Psi_Prim_cent%d;v1;Py,%",iter_cent),5,-1,1);
       fOutputList->Add(hPv1Psi_Prim[iter_cent]);
@@ -212,8 +229,14 @@ void MpdGlobalPolarizationMC::UserInit()
          new TH1D(Form("heta_Prim_cent%d", iter_cent), Form("heta_Prim_cent%d", iter_cent), 300, -1.5, 1.5);
       fOutputList->Add(heta_Prim[iter_cent]);
       hinvmass[iter_cent] = 
-          new TH1D(Form("hinvmass_cent%d", iter_cent), Form("hinvmass_cent%d", iter_cent), 100, 1.070, 1.170);
+          new TH1D(Form("hinvmass_cent%d", iter_cent), Form("hinvmass_cent%d", iter_cent), 50, 1.070, 1.170);
       fOutputList->Add(hinvmass[iter_cent]);
+      hsinvmass[iter_cent] =
+          new TH1D(Form("hsinvmass_cent%d", iter_cent), Form("hsinvmass_cent%d", iter_cent), 50, 1.070, 1.170);
+      fOutputList->Add(hsinvmass[iter_cent]);
+      hbinvmass[iter_cent] =
+          new TH1D(Form("hbinvmass_cent%d", iter_cent), Form("hbinvmass_cent%d", iter_cent), 50, 1.070, 1.170);
+      fOutputList->Add(hbinvmass[iter_cent]);
      
       
 
@@ -252,7 +275,27 @@ void MpdGlobalPolarizationMC::UserInit()
    hPv12pTPsi_Prim[iter_cent] = new TProfile *[NITER_ETA];
    hPv12EtaPsi_Prim[iter_cent] = new TProfile *[NITER_PT];
 
+   hv1_invmass_Psi[iter_cent] = new TProfile *[NITER_ETA];
+   hv1s_invmass_Psi[iter_cent] = new TProfile *[NITER_ETA];
+   hv1b_invmass_Psi[iter_cent] = new TProfile *[NITER_ETA];
+   hv1_2_invmass_Psi[iter_cent] = new TProfile *[NITER_ETA];
+   hv1s_2_invmass_Psi[iter_cent] = new TProfile *[NITER_ETA];
+   hv1b_2_invmass_Psi[iter_cent] = new TProfile *[NITER_ETA];
+
+   hv1s_inv_eta_Psi[iter_cent] = new TProfile *[2];
+   hv1b_inv_eta_Psi[iter_cent] = new TProfile *[2];
+   hv1s_inv_pt_Psi[iter_cent] = new TProfile *[NITER_ETA];
+   hv1b_inv_pt_Psi[iter_cent] = new TProfile *[NITER_ETA];
+
+   for(int iter_pt =0;iter_pt<2;iter_pt++){
+      hv1s_inv_eta_Psi[iter_cent][iter_pt] = new TProfile (Form("hv1s_inv_eta_Psi%d_%d", iter_cent,iter_pt), Form("hv1s_inv_eta_Psi%d_%d", iter_cent,iter_pt), 6, -1.5, 1.5);
+            fOutputList->Add(hv1s_inv_eta_Psi[iter_cent][iter_pt]);
+            hv1b_inv_eta_Psi[iter_cent][iter_pt] = new TProfile (Form("hv1b_inv_eta_Psi%d_%d", iter_cent,iter_pt), Form("hv1b_inv_eta_Psi%d_%d", iter_cent,iter_pt), 6, -1.5, 1.5);
+            fOutputList->Add(hv1b_inv_eta_Psi[iter_cent][iter_pt]);
+
+     }
    for(int iter_pt =0;iter_pt<NITER_PT;iter_pt++){
+
       hv1EtaPhi_Full[iter_cent][iter_pt] = new TProfile (Form("hv1EtaPhi_Full%d_%d", iter_cent,iter_pt), Form("hv1EtaPhi_Full%d_%d", iter_cent,iter_pt), 15, -1.5, 1.5);
             fOutputList->Add(hv1EtaPhi_Full[iter_cent][iter_pt]);
             hv1EtaPhi_Prim[iter_cent][iter_pt] = new TProfile (Form("hv1EtaPhi_Prim%d_%d", iter_cent,iter_pt), Form("hv1EtaPhi_Prim%d_%d", iter_cent,iter_pt), 15, -1.5, 1.5);
@@ -286,6 +329,27 @@ void MpdGlobalPolarizationMC::UserInit()
             fOutputList->Add(hP4EtaPsi_Prim[iter_cent][iter_pt]);
     }
     for(int iter_eta =0;iter_eta<NITER_ETA;iter_eta++){
+
+      hv1s_inv_pt_Psi[iter_cent][iter_eta] = new TProfile (Form("hv1s_inv_pt_Psi%d_%d", iter_cent,iter_eta), Form("hv1s_inv_pt_Psi%d_%d", iter_cent,iter_eta), 15, 0., 3.);
+            fOutputList->Add(hv1s_inv_pt_Psi[iter_cent][iter_eta]);
+      hv1b_inv_pt_Psi[iter_cent][iter_eta] = new TProfile (Form("hv1b_inv_pt_Psi%d_%d", iter_cent,iter_eta), Form("hv1b_inv_pt_Psi%d_%d", iter_cent,iter_eta), 15, 0., 3.);
+            fOutputList->Add(hv1b_inv_pt_Psi[iter_cent][iter_eta]);
+
+      hv1_invmass_Psi[iter_cent][iter_eta] = new TProfile(Form("hv1_invmass_Psi_cent%d_eta%d",iter_cent,iter_eta),Form("hv1_invmass_Psi_cent%d_eta%d;inv_mass, GeV/c;v1",iter_cent,iter_eta),10,1.07,1.17);
+      fOutputList->Add(hv1_invmass_Psi[iter_cent][iter_eta]);
+      hv1s_invmass_Psi[iter_cent][iter_eta] = new TProfile(Form("hv1s_invmass_Psi_cent%d_eta%d",iter_cent,iter_eta),Form("hv1s_invmass_Psi_cent%d_eta%d;inv_mass, GeV/c;v1",iter_cent,iter_eta),10,1.07,1.17);
+      fOutputList->Add(hv1s_invmass_Psi[iter_cent][iter_eta]);
+      hv1b_invmass_Psi[iter_cent][iter_eta] = new TProfile(Form("hv1b_invmass_Psi_cent%d_eta%d",iter_cent,iter_eta),Form("hv1b_invmass_Psi_cent%d_eta%d;inv_mass, GeV/c;v1",iter_cent,iter_eta),10,1.07,1.17);
+      fOutputList->Add(hv1b_invmass_Psi[iter_cent][iter_eta]);
+      hv1_2_invmass_Psi[iter_cent][iter_eta] = new TProfile(Form("hv1_2_invmass_Psi_cent%d_eta%d",iter_cent,iter_eta),Form("hv1_2_invmass_Psi_cent%d_eta%d;inv_mass, GeV/c;v1",iter_cent,iter_eta),10,1.07,1.17);
+      fOutputList->Add(hv1_2_invmass_Psi[iter_cent][iter_eta]);
+      hv1s_2_invmass_Psi[iter_cent][iter_eta] = new TProfile(Form("hv1s_2_invmass_Psi_cent%d_eta%d",iter_cent,iter_eta),Form("hv1s_2_invmass_Psi_cent%d_eta%d;inv_mass, GeV/c;v1",iter_cent,iter_eta),10,1.07,1.17);
+      fOutputList->Add(hv1s_2_invmass_Psi[iter_cent][iter_eta]);
+      hv1b_2_invmass_Psi[iter_cent][iter_eta] = new TProfile(Form("hv1b_2_invmass_Psi_cent%d_eta%d",iter_cent,iter_eta),Form("hv1b_2_invmass_Psi_cent%d_eta%d;inv_mass, GeV/c;v1",iter_cent,iter_eta),10,1.07,1.17);
+      fOutputList->Add(hv1b_2_invmass_Psi[iter_cent][iter_eta]);
+
+
+
       hv1pTPhi_Full[iter_cent][iter_eta] = new TProfile (Form("hv1pTPhi_Full%d_%d", iter_cent,iter_eta), Form("hv1pTPhi_Full%d_%d", iter_cent,iter_eta), 15, 0., 3.);
             fOutputList->Add(hv1pTPhi_Full[iter_cent][iter_eta]);
             hv1pTPhi_Prim[iter_cent][iter_eta] = new TProfile (Form("hv1pTPhi_Prim%d_%d", iter_cent,iter_eta), Form("hv1pTPhi_Prim%d_%d", iter_cent,iter_eta), 15, 0., 3.);
@@ -403,7 +467,7 @@ void MpdGlobalPolarizationMC::fillHistograms(MpdAnalysisEvent &event)
 
    for (int iter_cent = 0; iter_cent < NITER_CENT; iter_cent++) {
       if (Centrality_tpc >= centrality_max[iter_cent] || Centrality_tpc < centrality_min[iter_cent]) continue;
-      vector<int> vecP, vecPi;
+      vector<int> vecP, vecPi,vecPs,vecPb,vecPis,vecPib;
 
       ResEP1_true[iter_cent] += ResEP;
       SubEvRes1[iter_cent] += ResEPSub;
@@ -429,15 +493,29 @@ if(mcTr->GetMotherId()!=-1 && TMath::Abs(mcTr->GetRapidity())<1.5){
    int mcTr_MotherID = mcTr->GetMotherId();
    MpdMCTrack *mcTr_Mother = (MpdMCTrack *)mMCTracks->UncheckedAt(mcTr_MotherID);
    if (mcTr_Mother->GetPdgCode() == pdgCodeHyperon){  
-if(mcTr->GetPdgCode() == 2212)
+if(mcTr->GetPdgCode() == 2212){
 vecP.push_back(j);
-else if(mcTr->GetPdgCode() == -211)
+if(mcTr_Mother->GetMotherId()==-1)
+vecPs.push_back(j);
+else
+vecPb.push_back(j);
+}
+else if(mcTr->GetPdgCode() == -211){
 vecPi.push_back(j);
+if(mcTr_Mother->GetMotherId()==-1)
+vecPis.push_back(j);
+else
+vecPib.push_back(j);
   }
+}
 }
 }
 int nP = vecP.size();
 int nPi = vecPi.size();
+int nPs = vecPs.size();
+int nPis = vecPis.size();
+int nPb = vecPb.size();
+int nPib = vecPib.size();
 for(int ip = 0; ip<nP;ip++)
 {
  MpdMCTrack *mcTr = (MpdMCTrack *)mMCTracks->UncheckedAt(vecP[ip]);
@@ -445,32 +523,153 @@ for(int ip = 0; ip<nP;ip++)
  mcTr->GetMomentum(momP);
  double p_E = mcTr->GetEnergy();
 double p_phi = momP.Phi();
+TLorentzVector Prot, Pion, Prot_Save;
+mcTr->Get4Momentum(Prot);
+Prot_Save=Prot;
 for (int ipi =0; ipi<nPi;ipi++){
 MpdMCTrack *mcTr2 = (MpdMCTrack *)mMCTracks->UncheckedAt(vecPi[ipi]);
  TVector3 momPi;
  mcTr2->GetMomentum(momPi);
+ mcTr2->Get4Momentum(Pion);
  double pi_E = mcTr2->GetEnergy();
  double lam_pt;
  double lam_y;
  double phi_pair;
+ Prot = Prot_Save;
+ TVector3 beta = (Prot+Pion).BoostVector();
 lam_pt = (momPi+momP).Pt();
 lam_y = 0.5*TMath::Log(((p_E+pi_E)+(momPi+momP).Z())/((p_E+pi_E)-(momPi+momP).Z()));
 phi_pair = (momPi+momP).Phi();
 double inv_mass;
 inv_mass = TMath::Sqrt((p_E+pi_E)*(p_E+pi_E) - (momP+momPi)*(momP+momPi));
-hP_invmass_Psi[iter_cent]->Fill(inv_mass,TMath::Sin(phiRP-p_phi));
+Prot.Boost(-1*beta);
+hP_invmass_Psi[iter_cent]->Fill(inv_mass,TMath::Sin(phiRP-(Prot.Vect()).Phi()));
 hinvmass[iter_cent]->Fill(inv_mass);
-if(lam_pt>0.5)
+if(lam_pt>0)
+if(lam_pt<1)
+for(int iter_eta=0;iter_eta<NITER_ETA;iter_eta++){
+if(lam_y>eta_edges[iter_eta] && lam_y<eta_edges[iter_eta+1]){
+hv1_invmass_Psi[iter_cent][iter_eta]->Fill(inv_mass, TMath::Cos(phi_pair-phiRP));
+}}
+if(lam_pt>1)
 if(lam_pt<2)
-if(lam_y>0.5)
-if(lam_y<1)
-hv1_invmass_Psi[iter_cent]->Fill(inv_mass, TMath::Cos(phi_pair-phiRP));
+for(int iter_eta=0;iter_eta<NITER_ETA;iter_eta++){
+if(lam_y>eta_edges[iter_eta] && lam_y<eta_edges[iter_eta+1])
+hv1_2_invmass_Psi[iter_cent][iter_eta]->Fill(inv_mass, TMath::Cos(phi_pair-phiRP));
+}
 }
  
   
 }
+for(int ip = 0; ip<nPs;ip++)
+{
+ MpdMCTrack *mcTr = (MpdMCTrack *)mMCTracks->UncheckedAt(vecPs[ip]);
+ TVector3 momP;
+ mcTr->GetMomentum(momP);
+ TLorentzVector Prot, Pion, Prot_Save;
+ mcTr->Get4Momentum(Prot);
+ double p_E = mcTr->GetEnergy();
+double p_phi = momP.Phi();
+Prot_Save = Prot;
+for (int ipi =0; ipi<nPis;ipi++){
+MpdMCTrack *mcTr2 = (MpdMCTrack *)mMCTracks->UncheckedAt(vecPis[ipi]);
+ TVector3 momPi;
+ mcTr2->GetMomentum(momPi);
+ mcTr2->Get4Momentum(Pion);
+ double pi_E = mcTr2->GetEnergy();
+ double lam_pt;
+ double lam_y;
+ double phi_pair;
+ Prot = Prot_Save;
+ TVector3 beta = (Prot+Pion).BoostVector();
+lam_pt = (momPi+momP).Pt();
+lam_y = 0.5*TMath::Log(((p_E+pi_E)+(momPi+momP).Z())/((p_E+pi_E)-(momPi+momP).Z()));
+phi_pair = (momPi+momP).Phi();
+double inv_mass;
+inv_mass = TMath::Sqrt((p_E+pi_E)*(p_E+pi_E) - (momP+momPi)*(momP+momPi));
+Prot.Boost(-1*beta);
+hPs_invmass_Psi[iter_cent]->Fill(inv_mass,TMath::Sin(phiRP-(Prot.Vect()).Phi())); 
+hsinvmass[iter_cent]->Fill(inv_mass);
+for(int iter_eta=0;iter_eta<NITER_ETA;iter_eta++){
+if(lam_y>eta_edges[iter_eta] && lam_y<eta_edges[iter_eta+1]){
+if(lam_pt>0)
+if(lam_pt<1)
+hv1s_invmass_Psi[iter_cent][iter_eta]->Fill(inv_mass, TMath::Cos(phi_pair-phiRP));
+hv1s_inv_pt_Psi[iter_cent][iter_eta]->Fill(lam_pt, TMath::Cos(phi_pair-phiRP));
+}}
+for(int iter_pt=0;iter_pt<2;iter_pt++){
+  if(lam_pt>iter_pt && lam_pt< iter_pt+1)
+  hv1s_inv_eta_Psi[iter_cent][iter_pt]->Fill(lam_y, TMath::Cos(phi_pair-phiRP));
+}
+if(lam_pt>1)
+if(lam_pt<2)
+for(int iter_eta=0;iter_eta<NITER_ETA;iter_eta++){
+if(lam_y>eta_edges[iter_eta] && lam_y<eta_edges[iter_eta+1])
+hv1s_2_invmass_Psi[iter_cent][iter_eta]->Fill(inv_mass, TMath::Cos(phi_pair-phiRP));
+}
+}
+ 
+
+}
+
+for(int ip = 0; ip<nPb;ip++)
+{
+ MpdMCTrack *mcTr = (MpdMCTrack *)mMCTracks->UncheckedAt(vecPb[ip]);
+ TVector3 momP;
+ TLorentzVector Prot, Pion, Prot_Save;
+ mcTr->GetMomentum(momP);
+ mcTr->Get4Momentum(Prot);
+ Prot_Save = Prot;
+ double p_E = mcTr->GetEnergy();
+double p_phi = momP.Phi();
+for (int ipi =0; ipi<nPib;ipi++){
+MpdMCTrack *mcTr2 = (MpdMCTrack *)mMCTracks->UncheckedAt(vecPib[ipi]);
+ TVector3 momPi;
+ mcTr2->GetMomentum(momPi);
+ mcTr2->Get4Momentum(Pion);
+ double pi_E = mcTr2->GetEnergy();
+ double lam_pt;
+ double lam_y;
+ double phi_pair;
+ Prot = Prot_Save;
+ TVector3 beta = (Prot+Pion).BoostVector();
+lam_pt = (momPi+momP).Pt();
+lam_y = 0.5*TMath::Log(((p_E+pi_E)+(momPi+momP).Z())/((p_E+pi_E)-(momPi+momP).Z()));
+phi_pair = (momPi+momP).Phi();
+double inv_mass;
+inv_mass = TMath::Sqrt((p_E+pi_E)*(p_E+pi_E) - (momP+momPi)*(momP+momPi));
+Prot.Boost(-1*beta);
+hPb_invmass_Psi[iter_cent]->Fill(inv_mass,TMath::Sin(phiRP-(Prot.Vect()).Phi()));
+hbinvmass[iter_cent]->Fill(inv_mass);
+
+for(int iter_pt=0;iter_pt<2;iter_pt++){
+  if(lam_pt>iter_pt && lam_pt< iter_pt+1)
+  hv1b_inv_eta_Psi[iter_cent][iter_pt]->Fill(lam_y, TMath::Cos(phi_pair-phiRP));
+}
+for(int iter_eta=0;iter_eta<NITER_ETA;iter_eta++){
+if(lam_y>eta_edges[iter_eta] && lam_y<eta_edges[iter_eta+1]){
+if(lam_pt>0)
+if(lam_pt<1)
+hv1b_invmass_Psi[iter_cent][iter_eta]->Fill(inv_mass, TMath::Cos(phi_pair-phiRP));
+hv1b_inv_pt_Psi[iter_cent][iter_eta]->Fill(lam_pt, TMath::Cos(phi_pair-phiRP));
+}}
+if(lam_pt>1)
+if(lam_pt<2)
+for(int iter_eta=0;iter_eta<NITER_ETA;iter_eta++){
+if(lam_y>eta_edges[iter_eta] && lam_y<eta_edges[iter_eta+1])
+hv1b_2_invmass_Psi[iter_cent][iter_eta]->Fill(inv_mass, TMath::Cos(phi_pair-phiRP));
+}
+}
+
+
+}
+
 vecP.clear();
 vecPi.clear();
+vecPs.clear();
+vecPis.clear();
+vecPb.clear();
+vecPib.clear();
 hN->Fill(Centrality_tpc,N);
 hN2->Fill(Centrality_tpc,N*N);
 
@@ -587,13 +786,13 @@ hN2->Fill(Centrality_tpc,N*N);
                // Fill QA and flow distribution for primary hyperons
                hpT_Prim[iter_cent]->Fill(mcTr_Mother->GetPt());
                heta_Prim[iter_cent]->Fill(mcTr_Mother->GetRapidity());
-               if(TMath::Abs(mcTr_Mother->GetRapidity())<1 && polar_z>0)
+               if(TMath::Abs(mcTr_Mother->GetRapidity())<1 && mom_moth.Z()>0)
                hPv1Psi_Prim[iter_cent]->Fill(TMath::Cos(phi_lam - phiRP),polar_y);
-               if(TMath::Abs(mcTr_Mother->GetRapidity())<1 && polar_z<0)
+               if(TMath::Abs(mcTr_Mother->GetRapidity())<1 && mom_moth.Z()<0)
                hPv1Psi_Prim_Neg[iter_cent]->Fill(TMath::Cos(phi_lam - phiRP),polar_y);
-               if(TMath::Abs(mcTr_Mother->GetRapidity())<1 && TMath::Abs(mcTr_Mother->GetRapidity())<0.5 && mcTr_Mother->GetPt()>0.5 && mcTr_Mother->GetPt()<3 && polar_z>0)
+               if(TMath::Abs(mcTr_Mother->GetRapidity())<1 && TMath::Abs(mcTr_Mother->GetRapidity())<0.5 && mcTr_Mother->GetPt()>0.5 && mcTr_Mother->GetPt()<3 && mom_moth.Z()>0)
                hPv1Psi_Prim_cut[iter_cent]->Fill(TMath::Cos(phi_lam - phiRP),polar_y);
-               if(TMath::Abs(mcTr_Mother->GetRapidity())<1 && TMath::Abs(mcTr_Mother->GetRapidity())<0.5 && mcTr_Mother->GetPt()>0.5 && mcTr_Mother->GetPt()<3 && polar_z<0)
+               if(TMath::Abs(mcTr_Mother->GetRapidity())<1 && TMath::Abs(mcTr_Mother->GetRapidity())<0.5 && mcTr_Mother->GetPt()>0.5 && mcTr_Mother->GetPt()<3 && mom_moth.Z()<0)
                hPv1Psi_Prim_cut_Neg[iter_cent]->Fill(TMath::Cos(phi_lam - phiRP),polar_y);
                
                for(int iter_pt=0;iter_pt<NITER_PT;iter_pt++){
