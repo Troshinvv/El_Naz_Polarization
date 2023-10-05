@@ -1,8 +1,11 @@
+#$ -wd /scratch2/troshin/Polarization/TMP
 #$ -cwd 
 #$ -j y
 #$ -N GlobalPolRECO
-#$ -t 1-7700
+#$ -t 1-2500
 #$ -l h=(ncx20[6-8]|ncx22[6-8]|ncx23[5-8])
+#$ -o /scratch2/troshin/Polarization/TMP
+#$ -e /scratch2/troshin/Polarization/TMP
 
 date
 echo "Node: ${HOSTNAME}"
@@ -11,11 +14,11 @@ echo "Node: ${HOSTNAME}"
 export SELECTION_TYPE=omega2
 
 # choose which type of analysis to use (selection or analysis)
-export ANALYSIS_TYPE=selection
+export ANALYSIS_TYPE=analysis
 
 # designate the path to macros and output 
-export MACRO_DIR=/scratch2/nazarova/macro/polarization-analysis-framework/macros
-export OUT=/scratch2/nazarova/${ANALYSIS_TYPE}/${SELECTION_TYPE}
+export MACRO_DIR=/scratch2/troshin/mpdroot/physics/globalPolarization/macros
+export OUT=/scratch2/troshin/Polarization/OUT/Reco/${ANALYSIS_TYPE}/${SELECTION_TYPE}
 
 ((SGE_TASK_ID--))
 
@@ -27,14 +30,15 @@ fi
 # loading MPDROOT framework
 source /cvmfs/nica.jinr.ru/sw/os/login.sh
 module add mpddev
-export MPDROOT=/scratch2/nazarova/mpd
+export MPDROOT=/scratch2/troshin/mpd
 source $MPDROOT/config/env.sh
 
 # copying files to current node
+cd ${OUT}
 mkdir d_${JOB_ID}_${SGE_TASK_ID}
 cd d_${JOB_ID}_${SGE_TASK_ID} 
 cp ${MACRO_DIR}/mpdloadlibs.C mpdloadlibs.C
-cp ${MACRO_DIR}/RunAnalyses.C RunAnalyses.C
+cp ${MACRO_DIR}/RunAnalysesRECO.C RunAnalysesRECO.C
 cp ${MACRO_DIR}/nTr_Centr_Req30-PHSD.root nTr_Centr_Req30-PHSD.root
 cp ${MACRO_DIR}/pCentr.txt pCentr.txt
 cp ${MACRO_DIR}/pEP.txt pEP.txt
