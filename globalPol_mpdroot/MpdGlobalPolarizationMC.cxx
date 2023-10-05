@@ -140,6 +140,11 @@ void MpdGlobalPolarizationMC::UserInit()
    hPv1Psi_Prim_Neg = new TProfile *[NITER_CENT];
    hPv1Psi_Prim_cut_Neg = new TProfile *[NITER_CENT];
 
+   hPv1Psi_Prim_cut2 = new TH2F *[NITER_CENT];
+   hPv1Psi_Prim_cut_Neg2 = new TH2F *[NITER_CENT];
+   hv1PPsi_Prim_cut = new TProfile *[NITER_CENT];
+   hv1PPsi_Prim_cut_Neg = new TProfile *[NITER_CENT];
+
    hP_invmass_Psi = new TProfile *[NITER_CENT];
    hPs_invmass_Psi = new TProfile *[NITER_CENT];
    hPb_invmass_Psi = new TProfile *[NITER_CENT];
@@ -196,6 +201,17 @@ void MpdGlobalPolarizationMC::UserInit()
       fOutputList->Add(hPv1Psi_Prim_Neg[iter_cent]);
       hPv1Psi_Prim_cut_Neg[iter_cent] = new TProfile(Form("hPv1Psi_Prim_cut_Neg_cent%d",iter_cent),Form("hPv1Psi_Prim_cut_Neg_cent%d;v1;Py,%",iter_cent),5,-1,1);
       fOutputList->Add(hPv1Psi_Prim_cut_Neg[iter_cent]);
+
+      hv1PPsi_Prim_cut[iter_cent] = new TProfile(Form("hv1PPsi_Prim_cut_cent%d",iter_cent),Form("hv1PPsi_Prim_cut_cent%d;Py,%;v1",iter_cent),5,-1,1);
+      fOutputList->Add(hv1PPsi_Prim_cut[iter_cent]);
+      hv1PPsi_Prim_cut_Neg[iter_cent] = new TProfile(Form("hv1PPsi_Prim_cut_Neg_cent%d",iter_cent),Form("hv1PPsi_Prim_cut_Neg_cent%d;Py,%;v1",iter_cent),5,-1,1);
+      fOutputList->Add(hv1PPsi_Prim_cut_Neg[iter_cent]);
+
+
+      hPv1Psi_Prim_cut2[iter_cent] = new TH2F(Form("hPv1Psi_Prim_cut2_cent%d",iter_cent),Form("hPv1Psi_Prim_cut2_cent%d;v1;Py,%",iter_cent),200,-0.5,0.5,200,-10,10);
+      fOutputList->Add(hPv1Psi_Prim_cut2[iter_cent]);
+      hPv1Psi_Prim_cut_Neg2[iter_cent] = new TH2F(Form("hPv1Psi_Prim_cut_Neg2_cent%d",iter_cent),Form("hPv1Psi_Prim_cut_Neg2_cent%d;v1;Py,%",iter_cent),200,-0.5,0.5,200,-10,10);
+      fOutputList->Add(hPv1Psi_Prim_cut_Neg2[iter_cent]);
 
       hPolarY_Full[iter_cent] =
          new TH1D(Form("hPolarY_Full_cent%d", iter_cent), Form("hPolarY_Full_cent%d", iter_cent), 100, -1., 1.);
@@ -413,6 +429,14 @@ void MpdGlobalPolarizationMC::UserInit()
    phiEP    = 0.;
    ResEP    = 0.;
    ResEPSub = 0.;
+   meanv1 =0;
+      neg_meanv1 = 0;
+      meanPy = 0;
+      neg_meanPy=0;
+      weight1=0;
+  neg_weight1=0;
+  iterator =0;
+   
 }
 
 void MpdGlobalPolarizationMC::ProcessEvent(MpdAnalysisEvent &event)
@@ -487,8 +511,9 @@ for (int j = 0; j < nMC; ++j) // iterating over MCTracks
              if(mcTr_Lam_MotherID<0)
              N++;
             }
-           }
-
+          }
+//if(TMath::Abs(mcTr->GetRapidity())<0.5 && TDatabasePDG::Instance()->GetParticle(mcTr->GetPdgCode())->Charge()!=0)
+//N++;
 if(mcTr->GetMotherId()!=-1 && TMath::Abs(mcTr->GetRapidity())<1.5){
    int mcTr_MotherID = mcTr->GetMotherId();
    MpdMCTrack *mcTr_Mother = (MpdMCTrack *)mMCTracks->UncheckedAt(mcTr_MotherID);
@@ -790,10 +815,22 @@ hN2->Fill(Centrality_tpc,N*N);
                hPv1Psi_Prim[iter_cent]->Fill(TMath::Cos(phi_lam - phiRP),polar_y);
                if(TMath::Abs(mcTr_Mother->GetRapidity())<1 && mom_moth.Z()<0)
                hPv1Psi_Prim_Neg[iter_cent]->Fill(TMath::Cos(phi_lam - phiRP),polar_y);
-               if(TMath::Abs(mcTr_Mother->GetRapidity())<1 && TMath::Abs(mcTr_Mother->GetRapidity())<0.5 && mcTr_Mother->GetPt()>0.5 && mcTr_Mother->GetPt()<3 && mom_moth.Z()>0)
+               if(TMath::Abs(mcTr_Mother->GetRapidity())<1 && TMath::Abs(mcTr_Mother->GetRapidity())<0.5 && mcTr_Mother->GetPt()>0.5 && mcTr_Mother->GetPt()<3 && mom_moth.Z()>0){
                hPv1Psi_Prim_cut[iter_cent]->Fill(TMath::Cos(phi_lam - phiRP),polar_y);
-               if(TMath::Abs(mcTr_Mother->GetRapidity())<1 && TMath::Abs(mcTr_Mother->GetRapidity())<0.5 && mcTr_Mother->GetPt()>0.5 && mcTr_Mother->GetPt()<3 && mom_moth.Z()<0)
+               hv1PPsi_Prim_cut[iter_cent]->Fill(polar_y,TMath::Cos(phi_lam - phiRP));
+   //            hPv1Psi_Prim_cut2[iter_cent]->Fill(TMath::Cos(phi_lam - phiRP),polar_y);
+               meanv1=meanv1+TMath::Cos(phi_lam - phiRP);
+               meanPy = meanPy+polar_y;
+               weight1 = weight1+1;
+  }
+               if(TMath::Abs(mcTr_Mother->GetRapidity())<1 && TMath::Abs(mcTr_Mother->GetRapidity())<0.5 && mcTr_Mother->GetPt()>0.5 && mcTr_Mother->GetPt()<3 && mom_moth.Z()<0){
                hPv1Psi_Prim_cut_Neg[iter_cent]->Fill(TMath::Cos(phi_lam - phiRP),polar_y);
+               hv1PPsi_Prim_cut_Neg[iter_cent]->Fill(polar_y,TMath::Cos(phi_lam - phiRP));
+   //            hPv1Psi_Prim_cut_Neg2[iter_cent]->Fill(TMath::Cos(phi_lam - phiRP),polar_y);
+               neg_meanv1=neg_meanv1+TMath::Cos(phi_lam - phiRP);
+               neg_meanPy = neg_meanPy+polar_y;
+               neg_weight1 = neg_weight1+1;
+ }
                
                for(int iter_pt=0;iter_pt<NITER_PT;iter_pt++){
                   if((mcTr_Mother->GetPt())>pt_edges[iter_pt] && (mcTr_Mother->GetPt())<pt_edges[iter_pt+1]){
@@ -849,6 +886,23 @@ hN2->Fill(Centrality_tpc,N*N);
             } // mcTr_Mother->GetPdgCode() == pdgCodeHyperon
          }    // mcTr->GetPdgCode() == pdgCodeDaughter
       }       // cycle over MC tracks
+if(iterator==200)
+{
+  meanv1 = meanv1/weight1;
+  neg_meanv1 = neg_meanv1/neg_weight1;
+  meanPy = meanPy*(-100)/weight1;
+  neg_meanPy = neg_meanPy*(-100)/neg_weight1;
+  hPv1Psi_Prim_cut2[iter_cent]->Fill(meanv1,meanPy);
+    hPv1Psi_Prim_cut_Neg2[iter_cent]->Fill(neg_meanv1,neg_meanPy);
+   meanv1 =0;
+      neg_meanv1 = 0;
+      meanPy = 0;
+      neg_meanPy = 0;
+      weight1 = 0;
+      neg_weight1 = 0;
+      iterator=0; }
+else
+iterator++;
    }
 
    for (int iter_cent = 0; iter_cent < NITER_CENT; iter_cent++) {

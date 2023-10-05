@@ -139,6 +139,11 @@ private:
    TProfile ***hv1b_inv_pt_Psi;
    TProfile ***hv1s_inv_eta_Psi;
    TProfile ***hv1b_inv_eta_Psi;
+  
+   TH2F **hPv1Psi_Prim_cut2;
+   TH2F **hPv1Psi_Prim_cut_Neg2;
+   TProfile **hv1PPsi_Prim_cut;
+   TProfile **hv1PPsi_Prim_cut_Neg;
    
 
    // general parameters:
@@ -165,6 +170,14 @@ private:
    double ResEP;          // cos(PhiEP_FHCal_Full - PhiRP) for calculation of true 1st-order EP resolution
    double ResEPSub;       // cos(PhiEP_FHCal_S - PhiEP_FHCal_N) for calculation of reconstructed 1st-order EP resolution
    double Centrality_tpc; // Centrality from TPC
+   
+   double meanv1;
+      double neg_meanv1;
+      double meanPy;
+      double neg_meanPy;
+      int weight1;
+  int neg_weight1;
+  int iterator;
 
    double *SubEvRes1;   // cos(PhiEP_FHCal_S - PhiEP_FHCal_N) for calculation of reconstructed 1st-order EP resolution
    double *ResEP1_true; // cos(PhiEP_FHCal_Full - PhiRP) for calculation of true 1st-order EP resolution
