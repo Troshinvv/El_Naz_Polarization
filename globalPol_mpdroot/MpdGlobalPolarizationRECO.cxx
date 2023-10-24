@@ -246,6 +246,9 @@ hHypMCpTEta =new TH2F("hHypMCpTEta","MC pT vs Eta",600,-3,3,400,0,4);
    hv1EP_Prim_pt_eta_bin = new TProfile **[NITER_PT];
    hv1RP_Prim_pt_eta_bin = new TProfile **[NITER_PT];
 
+    hP_invmass_Phi = new TProfile *[NITER_CENT];
+    hinvmass = new TH1D *[NITER_CENT];
+
       hPolvsPt  = new TProfile *[NITER_CENT];
       hPolvsEta = new TProfile *[NITER_CENT];
 
@@ -308,6 +311,12 @@ hHypMCpTEta =new TH2F("hHypMCpTEta","MC pT vs Eta",600,-3,3,400,0,4);
       for (int iter_cent = 0; iter_cent < NITER_CENT; iter_cent++) {
          hm0[iter_cent]       = new TH1D *[NITER];
          hm0_mixed[iter_cent] = new TH1D *[NITER];
+
+         hP_invmass_Phi[iter_cent] = new TProfile(Form("hP_invmass_Phi_cent%d",iter_cent),Form("hP_invmass_Phi_cent%d;inv_mass, GeV/c;sin(phiEP-phiP)",iter_cent),10,1.07,1.17);
+      fOutputList->Add(hP_invmass_Phi[iter_cent]);
+         hinvmass[iter_cent] =
+          new TH1D(Form("hinvmass_cent%d", iter_cent), Form("hinvmass_cent%d", iter_cent), 50, 1.070, 1.170);
+      fOutputList->Add(hinvmass[iter_cent]);
          hm0_before[iter_cent] =
             new TH1D(Form("hm0_before_%d", iter_cent), Form("hm0_before_%d", iter_cent), 100, 1.07, 1.17);
          fOutputList->Add(hm0_before[iter_cent]);
@@ -908,6 +917,13 @@ if(TMath::Abs(lamb->etah)<1.)
 hHypRecopT_Full->Fill(lamb->pth);
 if(lamb->pth>0.5 && lamb->pth<3)
 hHypRecoEta_Full->Fill(lamb->etah);}
+
+for (int iter_cent = 0; iter_cent < NITER_CENT; iter_cent++) {
+            if (Centrality_tpc >= centrality_max[iter_cent] || Centrality_tpc < centrality_min[iter_cent]) continue;
+      hP_invmass_Phi[iter_cent]->Fill(massh,TMath::Sin(phiEP-lamb->phi_star));
+hinvmass[iter_cent]->Fill(massh);
+
+}
            /* if (Centrality_tpc >= centrality_max[2] || Centrality_tpc < centrality_min[2]) continue;
             for (int iter_pt = 0; iter_pt < NITER_PT; iter_pt++) {
                for (int iter_eta = 0; iter_eta < NITER_ETA; iter_eta++) {
@@ -1412,6 +1428,7 @@ void MpdGlobalPolarizationRECO::BuildLambda(vector<int> &vecP, vector<int> &vecP
       etas[1]        = trP->Momentum3().Eta();
       ps[1]          = trP->Momentum();
       pts[1]         = trP->Pt();
+      phis[1]        = trP->Phi();
       chi2s[1]       = TMath::Min(prot.Chi2Vertex(fMpdVert), 9999.);
       c2s[1]         = trP->GetChi2() / (trP->GetNofTrHits() * 2 - 5);
       layMx[1]       = TMath::Abs(fLays[trP->GetTrackID()]);
@@ -1474,6 +1491,7 @@ void MpdGlobalPolarizationRECO::BuildLambda(vector<int> &vecP, vector<int> &vecP
             etas[0]  = trPi->Momentum3().Eta();
             ps[0]    = trPi->Momentum();
             pts[0]   = trPi->Pt();
+            phis[0]  = trPi->Phi();
             chi2s[0] = TMath::Min(pion->Chi2Vertex(fMpdVert), 9999.);
             c2s[0]   = trPi->GetChi2() / (trPi->GetNofTrHits() * 2 - 5);
             layMx[0] = TMath::Abs(fLays[trPi->GetTrackID()]);

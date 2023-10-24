@@ -204,6 +204,10 @@ private:
    TProfile ***hv1RP_Full_pt_eta_bin;
    TProfile ***hv1EP_Prim_pt_eta_bin;
    TProfile ***hv1RP_Prim_pt_eta_bin;
+
+
+   TProfile **hP_invmass_Phi;
+   TH1D **hinvmass;
    // general parameters:
    double pi         = TMath::Pi();
    int    pdgCodePr  = 2212;  // pdg of proton
